@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Upload Forecast</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+     <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+
+<body class="bg-gray-50 text-gray-800 font-sans">
+
+    <!-- Header -->
+    <header class="sticky top-0 bg-white shadow z-50">
+        <div class="max-w-7xl mx-auto flex items-center justify-between px-6 py-5">
+            <img src="{{ url_for('static', path='assets/logo.png') }}" alt="Logo" class="h-10">
+            <nav class="space-x-6">
+                <a href="{{ url_for('index') }}" class="text-gray-700 hover:text-blue-600 transition font-medium">Home</a>
+                <a href="{{ url_for('upload') }}" class="text-blue-600 font-semibold underline">Upload</a>
+                <a href="/forecast.html" class="text-gray-700 hover:text-blue-600 transition font-medium">Forecast</a>
+                <a href="/results.html" class="text-gray-700 hover:text-blue-600 transition font-medium">Results</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Upload Section -->
+    <section class="max-full mx-auto px-6 py-12">
+        <h1 class="text-4xl font-bold mb-10 text-center text-blue-800">Upload Your CSV</h1>
+
+        <!-- File Upload -->
+        <div class="flex justify-center mb-8">
+            <input id="csvInput" type="file" accept=".csv"
+                class="block w-full max-w-xs text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:font-semibold file:bg-blue-100 file:text-blue-700 hover:file:bg-blue-200" />
+        </div>
+
+        <!-- Dropdown and Run Button -->
+        <div class="flex justify-center mb-8">
+            <div id="optionsSection" class="hidden w-full max-w-xs space-y-4">
+                <select id="frequency"
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    <option value="">Select Frequency</option>
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="monthly">Monthly</option>
+                </select>
+                <button id="runForecast"
+                    class="w-full py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition">
+                    Run Forecast
+                </button>
+            </div>
+        </div>
+
+
+        <!-- Spinner -->
+        <div id="spinner" class="hidden flex justify-center my-6">
+            <svg class="animate-spin h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none"
+                viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+            </svg>
+        </div>
+
+        <!-- Scores Section -->
+        <div class="flex justify-center mt-8" id="resultsWrapper">
+            <div id="results" class="w-full max-w-4xl hidden">
+                <h2 class="text-2xl font-semibold mb-4 text-center">Forecast Results</h2>
+                <div id="tableContainer" class="flex justify-center flex-wrap gap-6">
+                    <!-- Tables will be dynamically inserted here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Model Selection -->
+        <div class="flex justify-center mt-8" id="modelSectionWrapper">
+            <div id="modelSection" class="w-full max-w-md hidden">
+                <h3 class="text-xl font-semibold mb-2 text-center">Select Model</h3>
+                <select id="modelSelector"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">Select Model</option>
+                    <!-- Options will be populated dynamically -->
+                </select>
+            </div>
+        </div>
+
+        <!-- Spinner -->
+        <div id="spinner_model" class="hidden flex justify-center my-6">
+            <svg class="animate-spin h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none"
+                viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+            </svg>
+        </div>
+
+        <!-- Tables Section -->
+        <div class="flex justify-center mt-8" id="resultsWrapper">
+            <div id="modelResults" class="w-full max-w-7xl hidden">
+                <!-- <h2 class="text-2xl font-semibold mb-4 text-center">Forecast Results</h2> -->
+                <div id="modelTableContainer" class="flex justify-center flex-wrap gap-6">
+                    <!-- JS will insert tables here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Section (Bottom Row) -->
+        <div id="chartContainer" class="mt-8 hidden grid grid-cols-1 md:grid-cols-2 gap-6 max-w-6xl mx-auto">
+            <!-- Chart 1 -->
+            <div id="chart3" class="bg-white p-4 shadow rounded">
+                <h4 class="text-center font-semibold mb-2">Actual vs Forecast with Confidence Interval</h4>
+                <svg id= "currentChart" width="100%" height="300"></svg>
+            </div>
+
+            <!-- Chart 2 -->
+            <div id="chart4" class="bg-white p-4 shadow rounded">
+                <h4 class="text-center font-semibold mb-2">Future Forecast with Confidence Interval</h4>
+                <svg id="futureChart" width="100%" height="300"></svg>
+            </div>
+        </div>
+
+    </section>
+
+    <script type="text/javascript" src="{{ url_for('static', path='js/currentChart.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', path='js/futureChart.js') }}"></script>
+
+    <!-- Script -->
+    <script>
+        const csvInput = document.getElementById('csvInput');
+        const optionsSection = document.getElementById('optionsSection');
+        const runForecast = document.getElementById('runForecast');
+        const spinner = document.getElementById('spinner');
+        const spinnerModel = document.getElementById('spinner_model');
+        const results = document.getElementById('results');
+        const tableContainer = document.getElementById('tableContainer');
+        const modelSection = document.getElementById('modelSection');
+        const modelSelector = document.getElementById('modelSelector');
+
+        let uploadedFile;
+
+        csvInput.addEventListener('change', (e) => {
+            uploadedFile = e.target.files[0];
+            if (uploadedFile) {
+                optionsSection.classList.remove('hidden');
+            } else {
+                optionsSection.classList.add('hidden');
+            }
+        });
+
+        runForecast.addEventListener('click', async () => {
+            const frequency = document.getElementById('frequency').value;
+            if (!uploadedFile || !frequency) return alert('Please upload a file and select frequency.');
+
+            spinner.classList.remove('hidden');
+            results.classList.add('hidden');
+            tableContainer.innerHTML = '';
+
+            const formData = new FormData();
+            formData.append('file', uploadedFile);
+            formData.append('frequency', frequency);
+
+            try {
+                const response = await fetch('/api/forecast', {
+                    method: 'POST',
+                    body: formData,
+                    credentials: "include"
+                });
+                const data = await response.json();
+
+                const resultsWrapper = document.getElementById('results');
+                resultsWrapper.classList.remove('hidden');
+
+                // Clear any previous tables
+                const tableContainer = document.getElementById('tableContainer');
+                tableContainer.innerHTML = '';
+
+                // Apply layout classes
+                tableContainer.className = 'flex flex-wrap gap-6 justify-center';
+
+                data.tables.forEach((table, index) => {
+                    // Create a column wrapper for each table + title
+                    const colWrapper = document.createElement('div');
+                    colWrapper.className = 'w-full md:w-[45%]';
+
+                    // Add a title above the table
+                    const title = document.createElement('h3');
+                    title.textContent = table.title || "Scores";
+                    title.className = 'text-lg font-semibold mb-2 text-center';
+
+                    // Create the table wrapper and table element
+                    const tableWrapper = document.createElement('div');
+                    tableWrapper.className = 'w-full bg-white shadow-sm rounded overflow-x-auto';
+
+                    const tableEl = document.createElement('table');
+                    tableEl.className = 'w-full';
+
+                    const thead = '<thead><tr>' + table.headers.map(h =>
+                        `<th class="text-left p-2 border-b font-medium">${h}</th>`).join('') + '</tr></thead>';
+                    const tbody = '<tbody>' + table.rows.map(row =>
+                        '<tr>' + row.map(cell => `<td class="p-2 border-b">${cell}</td>`).join('') + '</tr>').join('') + '</tbody>';
+
+                    tableEl.innerHTML = thead + tbody;
+
+                    // Assemble the column
+                    tableWrapper.appendChild(tableEl);
+                    colWrapper.appendChild(title);
+                    colWrapper.appendChild(tableWrapper);
+                    tableContainer.appendChild(colWrapper);
+                });
+                // Inside runForecast.addEventListener AFTER rendering tables:
+                if (data.models && data.models.length > 0) {
+                    modelSelector.innerHTML = '<option value="">Select Model</option>' +
+                        data.models.map(model => `<option value="${model}">${model}</option>`).join('');
+                    modelSection.classList.remove('hidden');
+                }
+                spinner.classList.add('hidden');
+
+                modelSelector.addEventListener("change", async () => {
+                    const selectedModel = modelSelector.value;
+                    if (!selectedModel) return;
+                    spinnerModel.classList.remove('hidden');
+                    chartContainer.classList.add('hidden');
+                    try {
+                        const response = await fetch(`/api/forecast/${selectedModel}`,
+                            { method: 'GET', credentials: "include" });
+                        const modelData = await response.json();
+
+                        const resultsWrapper = document.getElementById('modelResults');
+                        resultsWrapper.classList.remove('hidden');
+
+                        // Clear any previous tables
+                        const tableContainer = document.getElementById('modelTableContainer');
+                        tableContainer.innerHTML = '';
+
+                        // Apply layout classes
+                        tableContainer.className = 'flex flex-wrap gap-6 justify-center';
+
+                        modelData.tables.forEach((table, index) => {
+                            // Create a column wrapper for each table + title
+                            const colWrapper = document.createElement('div');
+                            colWrapper.className = 'w-full md:w-[45%]';
+
+                            // Add a title above the table
+                            const title = document.createElement('h3');
+                            title.textContent = table.title || "Scores";
+                            title.className = 'text-lg font-semibold mb-2 text-center';
+
+                            // Create the table wrapper and table element
+                            const tableWrapper = document.createElement('div');
+                            tableWrapper.className = 'w-full bg-white shadow-sm rounded overflow-x-auto';
+
+                            const tableEl = document.createElement('table');
+                            tableEl.className = 'w-full';
+
+                            const thead = '<thead><tr>' + table.headers.map(h =>
+                                `<th class="text-left p-2 border-b font-medium">${h}</th>`).join('') + '</tr></thead>';
+                            const tbody = '<tbody>' + table.rows.map(row =>
+                                '<tr>' + row.map(cell => `<td class="p-2 border-b">${cell}</td>`).join('') + '</tr>').join('') + '</tbody>';
+
+                            tableEl.innerHTML = thead + tbody;
+
+                            // Assemble the column
+                            tableWrapper.appendChild(tableEl);
+                            colWrapper.appendChild(title);
+                            colWrapper.appendChild(tableWrapper);
+                            tableContainer.appendChild(colWrapper);
+                        });
+                        
+                        const currentItem = modelData.tables.filter(d => d.type === "current")[0];
+                        const futureItem = modelData.tables.filter(d => d.type === "future")[0];
+                        drawCurrentForecastChart(currentItem, "#currentChart");
+                        drawFutureForecastChart("#futureChart", currentItem, futureItem);
+
+                        chartContainer.classList.remove('hidden');
+                    } catch (error) {
+                        alert('Error loading the model');
+                        console.error(error);
+                    } finally {
+                        spinnerModel.classList.add('hidden');
+                    }
+                })
+                results.classList.remove('hidden');
+            } catch (error) {
+                alert('Error running forecast.');
+                console.error(error);
+            } finally {
+                spinner.classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+
+</html>

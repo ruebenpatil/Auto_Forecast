@@ -32,5 +32,6 @@ RUN uv pip install --system .
 EXPOSE 80
 
 # Run the FastAPI app
-CMD ["gunicorn", "-w", "2", "-k", "uvicorn.workers.UvicornWorker", "main:app", "--bind", "0.0.0.0:80"]
+CMD ["gunicorn", "-w", "2", "-k", "uvicorn.workers.UvicornWorker", "main:app", "--bind", "0.0.0.0:80", "--timeout", "1200"]
+
 

@@ -46,7 +46,7 @@ async def forecast(request:Request, file: UploadFile = File(...), frequency: str
     start_time = time.time()
     content = await file.read()
     df = pd.read_csv(StringIO(content.decode("utf-8")))
-    n_trails = 2
+    n_trails = 20
     if frequency.lower() == "daily":
         result = compute_daily_forecast(df, n_trails)
     elif frequency.lower() == "monthly":

@@ -1,39 +1,39 @@
 import pandas as pd
 import numpy as np
-from sklearn.metrics import mean_squared_error
-from sklearn.linear_model import Lasso, LinearRegression
-from statsmodels.stats.outliers_influence import variance_inflation_factor
-from statsmodels.tsa.stattools import acf, pacf
-import optuna
 from scipy.stats import skew
+from statsmodels.tsa.stattools import acf, pacf
+from statsmodels.stats.outliers_influence import variance_inflation_factor
+from sklearn.metrics import mean_squared_error
 from itertools import combinations
-import sys
-import warnings
+from sklearn.linear_model import Lasso, LinearRegression
+import optuna
 
 from src.utils.logger import setup_logger
-from src.models.evaluate_models import evaluate_ts_models
+import warnings
 
-optuna.logging.set_verbosity(optuna.logging.WARNING)
 warnings.simplefilter("ignore")
 
-MIN_DAILY_DATA_SPAN = 90
+logger = setup_logger("PROCESSING")
+
+optuna.logging.enable_propagation()  # Propagate logs to the root logger.
+optuna.logging.disable_default_handler()
 
 
-logger = setup_logger("DAILY")
-
-
-def load_and_parse_date(df, formats, date_column="Date"):
+def load_and_parse_date(df, formats_to_try, date_column):
     df = df.copy()
 
     if df[date_column].isnull().any():
-        logger.warning("Null values found in date column. Consider handling them before parsing.")
+        logger.warning(
+            "Null values found in date column. Consider handling them before parsing."
+        )
 
-    formats_to_try = ["%Y-%m-%d", "%d-%m-%Y", "%m/%d/%Y"]
     parsed = False
 
     for fmt in formats_to_try:
         try:
-            df[date_column] = pd.to_datetime(df[date_column], format=fmt, errors="raise")
+            df[date_column] = pd.to_datetime(
+                df[date_column], format=fmt, errors="raise"
+            )
             logger.info(f"Successfully parsed dates using format: {fmt}")
             parsed = True
             break
@@ -42,27 +42,43 @@ def load_and_parse_date(df, formats, date_column="Date"):
 
     if not parsed:
         try:
-            df[date_column] = pd.to_datetime(df[date_column], infer_datetime_format=True, errors='raise')
+            df[date_column] = pd.to_datetime(
+                df[date_column], infer_datetime_format=True, errors="raise"
+            )
             logger.info("Parsed dates using fallback (inferred format).")
         except Exception as e:
-            logger.error("Unable to parse the 'Date' column. Please use a consistent format.")
+            logger.error(
+                "Unable to parse the 'Date' column. Please use a consistent format."
+            )
+    
+    if not parsed:
+        try:
+            df[date_column] = pd.to_datetime(
+                df[date_column], format="mixed", dayfirst=True
+            )
+            logger.info("Parsed dates using fallback (inferred format).")
+        except Exception as e:
+            logger.error(
+                "Unable to parse the 'Date' column. Please use a consistent format."
+            )
             raise e
 
     df.sort_values(by=date_column, inplace=True)
     df.set_index(date_column, inplace=True)
 
     if df.index.duplicated().any():
-        logger.warning("Duplicate dates found in the index. Consider aggregating or removing them.")
+        logger.warning(
+            "Duplicate dates found in the index. Consider aggregating or removing them."
+        )
 
     logger.success("Date column successfully parsed and set as index.")
     return df
 
 
-def preprocess_data(df, target_column="Target", apply_log_transform=False):
+def preprocess_data(df, min_data_span, target_column, apply_log_transform=False):
     df = df.copy()
-
-    if len(df) < MIN_DAILY_DATA_SPAN:
-        raise ValueError(f"Insufficient data. Require at least ~{MIN_DAILY_DATA_SPAN} days.")
+    if len(df) < min_data_span:
+        raise ValueError(f"Insufficient data. Require at least ~{min_data_span} days.")
 
     external_features = [col for col in df.columns if col != target_column]
 
@@ -104,19 +120,16 @@ def preprocess_data(df, target_column="Target", apply_log_transform=False):
 
     return df
 
-
-
-def create_lag_features(df, target_column="Target", max_lag=30):
-    for lag in range(1, max_lag + 1):
+def create_lag_features(df, target_column, max_lags):
+    for lag in range(1, max_lags + 1):
         df[f"lag_{lag}"] = df[target_column].shift(lag)
     df.dropna(inplace=True)
     return df
 
-
-def select_lag_features(df, target_column="Target", max_lag=30, acf_threshold=0.2, pacf_threshold=0.2, vif_threshold=5.0):
+def select_lag_features(df, target_column, max_lags, acf_threshold=0.2, pacf_threshold=0.2, vif_threshold=5.0):
     # Compute ACF and PACF
-    acf_vals = acf(df[target_column], nlags=max_lag, fft=False)[1:]
-    pacf_vals = pacf(df[target_column], nlags=max_lag)[1:]
+    acf_vals = acf(df[target_column], nlags=max_lags, fft=False)[1:]
+    pacf_vals = pacf(df[target_column], nlags=max_lags)[1:]
 
     # Select lags based on threshold
     selected_lags = [
@@ -126,7 +139,7 @@ def select_lag_features(df, target_column="Target", max_lag=30, acf_threshold=0.
 
     # Fallback: include all if nothing meets threshold
     if not selected_lags:
-        selected_lags = list(range(1, max_lag + 1))
+        selected_lags = list(range(1, max_lags + 1))
 
     selected_features = [f"lag_{lag}" for lag in selected_lags]
     lag_df = df[selected_features].copy()
@@ -135,7 +148,7 @@ def select_lag_features(df, target_column="Target", max_lag=30, acf_threshold=0.
     lag_df.dropna(inplace=True)
 
     # Iteratively remove features with high VIF
-    while True:
+    while len(selected_features) > 1:
         vif = pd.Series(
             [variance_inflation_factor(lag_df.values, i) for i in range(lag_df.shape[1])],
             index=lag_df.columns,
@@ -169,7 +182,7 @@ def select_best_lags(train_features,test_features,train_target,test_target,model
                 rmse = np.sqrt(mean_squared_error(test_target, predictions))
 
                 if verbose:
-                    print(f"Lags: {lag_subset} -> RMSE: {rmse:.4f}")
+                    logger.info(f"Lags: {lag_subset} -> RMSE: {rmse:.4f}")
 
                 if rmse < best_rmse:
                     best_rmse = rmse
@@ -177,19 +190,19 @@ def select_best_lags(train_features,test_features,train_target,test_target,model
 
                     if early_stopping and rmse == 0:
                         if verbose:
-                            print("Early stopping: perfect prediction.")
+                            logger.info("Early stopping: perfect prediction.")
                         return best_lags
 
             except Exception as e:
                 if verbose:
-                    print(f"Error with lags {lag_subset}: {e}")
+                    logger.info(f"Error with lags {lag_subset}: {e}")
                 continue
 
     return best_lags if best_lags else all_lags
 
 
 
-def apply_lasso_selection(df, selected_features, target_column="Target", alpha=0.1):
+def apply_lasso_selection(df, selected_features, target_column, alpha=0.1):
     X = df[selected_features]
     y = df[target_column]
     lasso = Lasso(alpha=alpha)
@@ -198,7 +211,7 @@ def apply_lasso_selection(df, selected_features, target_column="Target", alpha=0
 
 
 
-def optimize_rolling_window(df, target_column="Target", min_window=3, max_window=36):
+def optimize_rolling_window(df, target_column, min_window=3, max_window=36):
     best_window = min_window
     best_rmse = float("inf")
 
@@ -227,11 +240,11 @@ def optimize_rolling_window(df, target_column="Target", min_window=3, max_window
 
 
 # === Workflow ===
-def full_daily_pipeline(df, target_column="Target"):
-    df = load_and_parse_date(df)
-    df = preprocess_data(df, target_column)
-    df = create_lag_features(df, target_column)
-    selected_features = select_lag_features(df, target_column)
+def full_daily_pipeline(df, formats_to_try: list[str], target_column:str, date_column:str, min_data_span:int, max_lags:int):
+    df = load_and_parse_date(df, formats_to_try, date_column)
+    df = preprocess_data(df, min_data_span,target_column)
+    df = create_lag_features(df, target_column, max_lags)
+    selected_features = select_lag_features(df, target_column, max_lags)
 
     # Split for RMSE lag optimization
     split_idx = int(len(df) * 0.8)
@@ -269,22 +282,3 @@ def full_daily_pipeline(df, target_column="Target"):
         test_target,
         selected_features,
     )
-
-
-# Run pipeline
-def compute_daily_forecast(df_daily, n_trials):
-    df, X_train, X_test, y_train, y_test, features = full_daily_pipeline(df_daily)
-    daily_result = evaluate_ts_models(y_train, y_test, X_train, X_test, n_trials)
-    y_test = dict(zip(y_test.index.strftime("%Y-%m-%d"), y_test.values.tolist()))
-    daily_result = {**daily_result, "y_test": y_test, "freq": "D"}
-    return daily_result
-
-if __name__ == "__main__":
-    # Example usage
-    df = pd.read_csv("D:\Projects\time_series\Auto_Forecast\data\vigorous_daily_90day_data.csv")
-    import sys
-    from pathlib import Path
-    sys.path.append(str(Path(__file__).resolve().parents[2]))   
-    result = compute_daily_forecast(df)
-    print(result)
-

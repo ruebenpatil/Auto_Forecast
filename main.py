@@ -1,6 +1,5 @@
-from fastapi import FastAPI, UploadFile, Form, File
+from fastapi import FastAPI, UploadFile, Form, File, Request
 from fastapi.responses import JSONResponse
-from fastapi.requests import Request
 from starlette.middleware.sessions import SessionMiddleware
 
 from fastapi.templating import Jinja2Templates
@@ -12,37 +11,26 @@ import numpy as np
 from io import StringIO
 import time
 import json
-from rich import print
 
-from src.daily_forecast import compute_daily_forecast
-from src.monthly_forecast import compute_monthly_forecast
-from src.weekly_forecast import compute_weekly_forecast
+from src.forecast import compute_daily_forecast, compute_monthly_forecast, compute_weekly_forecast
 from src.utils.logger import setup_logger
 
 WORKING_DIR = Path.cwd().resolve()
 TEMPLATE_PATH = WORKING_DIR.joinpath("templates")
 STATIC_PATH = WORKING_DIR.joinpath("static")
 
+logger = setup_logger("MAIN")
 
-templates = Jinja2Templates(directory=str(TEMPLATE_PATH))
 
 app = FastAPI()
-
+templates = Jinja2Templates(directory=str(TEMPLATE_PATH))
 app.mount("/static", StaticFiles(directory=str(STATIC_PATH)), name="static")
-
-app.add_middleware(
-    SessionMiddleware,
-    secret_key="your-very-secret-key"  # Use a strong, secure key in production
-)
+app.add_middleware(SessionMiddleware,secret_key="your-very-secret-key")
 
 
 @app.get("/", name="home")
-async def root(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
-
-
 @app.get("/index", name="index")
-async def home(request: Request):
+async def root(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
 
@@ -53,21 +41,23 @@ async def upload(request: Request):
 
 @app.post("/api/forecast")
 async def forecast(request:Request, file: UploadFile = File(...), frequency: str = Form(...)):
+    logger.debug(f"=============================== {file.filename}=========================================")
+    logger.debug(f"Received file: {file.filename}")
     start_time = time.time()
     content = await file.read()
     df = pd.read_csv(StringIO(content.decode("utf-8")))
-
+    n_trails = 2
     if frequency.lower() == "daily":
-        result = compute_daily_forecast(df, 20)
+        result = compute_daily_forecast(df, n_trails)
     elif frequency.lower() == "monthly":
-        result = compute_monthly_forecast(df, 20)
+        result = compute_monthly_forecast(df, n_trails)
     elif frequency.lower() == "weekly":
-        result = compute_weekly_forecast(df,20)
+        result = compute_weekly_forecast(df,n_trails)
 
     
     smape_scores_dict = result.get("smape_scores")
     mfb_scores_dict = result.get("mfb_scores")
-    common_list = list(set(list(smape_scores_dict.keys())) & set(list(mfb_scores_dict.keys())))
+    common_list = set(smape_scores_dict) | set(mfb_scores_dict)
     smape_rows = []
     mfb_rows = []
     
@@ -90,44 +80,41 @@ async def forecast(request:Request, file: UploadFile = File(...), frequency: str
             },
         ]
     
+    best_model = result.get("best_model")
+    
     request.session.update({
-            # "elapsed_time": (time.time() - start_time) / 60,
-            # "results_ready": True,
             "predictions_dict": result.get("models"),
-            # "smape_scores": result.get("smape_scores"),
-            # "mfb_scores": result.get("mfb_scores"),
-            # "best_model": result.get("best_model"),
+            "best_model": best_model,
             "simple_avg_forecast": result.get("simple_avg_forecast"),
             "weighted_avg_forecast": result.get("weighted_avg_forecast"),
             "y_test": result.get("y_test"),
             "freq": result.get("freq"),
         })
     
-    print(request.session)
-    print("----------------------------------------------------")
-    print(tables)
+    logger.debug(f"Session data: {request.session}")
+    
     
     return JSONResponse(
         content={
             "message": "Forecasting completed successfully",
             "tables": tables,
-            "models": common_list
+            "models": list(common_list),
+            "top_model_text": f"Best Model: {result.get('best_model')}  (SMAPE: {smape_scores_dict[best_model]:.3f})",
         },
         status_code=200,
     )
 
 @app.get("/api/forecast/{model_name}")
 async def forecast_model(model_name: str, request: Request):
-    print("----------------------------------------------------")
-    print(request.session)
-    print("----------------------------------------------------")
-    print(request.session.get("weighted_avg_forecast"))
+    logger.debug(f"--------------- {model_name} --------------------")
+    logger.debug(f"Session data: {request.session}")
     y_test = request.session.get("y_test")
     y_test = pd.Series(y_test)
     y_test.index = pd.to_datetime(y_test.index)
 
     forecast_horizon = len(y_test)
     models = request.session.get("predictions_dict")
+    best_model = request.session.get("best_model")
 
     if model_name == "Simple Average":
         chosen_forecast = request.session.get("simple_avg_forecast")
@@ -142,8 +129,8 @@ async def forecast_model(model_name: str, request: Request):
         else:
             chosen_forecast = model_output
     else:
-        print("⚠️ Invalid model selection. Using best model.")
-        chosen_forecast = models[model_name]
+        logger.warning("⚠️ Invalid model selection. Using best model.")
+        chosen_forecast = models[best_model]
 
     formatted_test_index = y_test.index.strftime("%Y-%m-%d")
 

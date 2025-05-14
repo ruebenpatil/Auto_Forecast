@@ -32,8 +32,6 @@ def evaluate_ts_models(train, test, train_features, test_features, n_trials=10):
     def safe_run_model(name, func):
         try:
             pred = func()
-            if isinstance(pred, dict):  # Skip incompatible formats
-                raise ValueError("Prediction format not supported.")
             pred = np.array(pred).flatten()
             if pred.shape != test.shape:
                 raise ValueError("Prediction shape mismatch.")
@@ -41,7 +39,7 @@ def evaluate_ts_models(train, test, train_features, test_features, n_trials=10):
             smape_scores[name] = smape(test, pred)
             mfb_scores[name] = mean_relative_forecast_bias(test, pred)
         except Exception as e:
-            print(f"[Skipping] {name}: {e}")
+            logger.info(f"[Skipping] {name}: {e}")
 
     # --- Model Definitions ---
     model_functions = {
@@ -62,7 +60,7 @@ def evaluate_ts_models(train, test, train_features, test_features, n_trials=10):
 
     # --- Run All Models ---
     for name, func in model_functions.items():
-        print(f"Running {name}...")
+        logger.info(f"Running {name}...")
         safe_run_model(name, func)
 
     if not smape_scores:
@@ -77,9 +75,7 @@ def evaluate_ts_models(train, test, train_features, test_features, n_trials=10):
         if smape_scores.get(name, float("inf")) <= smape_threshold or abs(mfb_scores.get(name, float("inf"))) <= 0.1
     }
 
-    logger.success("Models Used in Simple Average:")
-    for model in selected_models:
-        logger.debug(f"- {model}")
+    logger.success(f"Models Used in Simple Average: {list(selected_models.keys())}")
 
     # --- Simple Average ---
     if len(selected_models) > 0:
@@ -102,37 +98,32 @@ def evaluate_ts_models(train, test, train_features, test_features, n_trials=10):
         smape_scores["Weighted Average"] = smape(test, weighted_avg_forecast)
         mfb_scores["Weighted Average"] = mean_relative_forecast_bias(test, weighted_avg_forecast)
 
+    best_model = min(smape_scores, key=smape_scores.get)
     # --- Hybrid Model ---
     hybrid_model = None
-    if smape_scores.get("Weighted Average", float("inf")) < best_smape:
-        hybrid_model = "Weighted Average"
-    else:
-        stat_models = ["ARIMA", "SARIMA", "ETS", "Holt-Winters"]
-        ml_models = ["Random Forest", "XGBoost", "LightGBM", "CatBoost", "SVR", "KNN"]
-        dl_models = ["LSTM", "GRU", "TFT"]
+    best_stat_model = min(["ARIMA", "SARIMA", "ETS", "Holt-Winters"], key=lambda m: smape_scores.get(m, float("inf")), default=None)
+    best_ml_model = min(["Random Forest", "XGBoost", "LightGBM", "CatBoost", "SVR", "KNN"], key=lambda m: smape_scores.get(m, float("inf")), default=None)
+    best_dl_model = min(["LSTM", "GRU", "TFT"], key=lambda m: smape_scores.get(m, float("inf")), default=None)
+    logger.info(f"Stat Models: {best_stat_model}")
+    logger.info(f"ML Models: {best_ml_model}")
+    logger.info(f"DL Models: {best_dl_model}")
 
-        best_stat = min(stat_models, key=lambda m: smape_scores.get(m, float("inf")), default=None)
-        best_ml = min(ml_models, key=lambda m: smape_scores.get(m, float("inf")), default=None)
-        best_dl = min(dl_models, key=lambda m: smape_scores.get(m, float("inf")), default=None)
+    def try_hybrid(m1, m2):
+        combined = 0.5 * np.array(models[m1]) + 0.5 * np.array(models[m2])
+        s = smape(test, combined)
+        name = f"{m1} + {m2}"
+        logger.success(f"Hybrid Model: {name} (SMAPE: {s:.3f})")
+        models[name] = np.round(combined, 3).tolist()
+        smape_scores[name] = s
+        mfb_scores[name] = mean_relative_forecast_bias(test, combined)
+        return name
 
-        if best_stat and best_ml:
-            hybrid_forecast = 0.5 * np.array(models[best_stat]) + 0.5 * np.array(models[best_ml])
-            hybrid_smape = smape(test, hybrid_forecast)
-            logger.info(f"Hybrid {best_stat} + {best_ml}: SMAPE = {hybrid_smape:.4f}")
-            if hybrid_smape < best_smape:
-                hybrid_model = f"{best_stat} + {best_ml}"
-                models[hybrid_model] = np.round(hybrid_forecast,3).tolist()
-                smape_scores[hybrid_model] = hybrid_smape
 
-        elif best_ml and best_dl:
-            hybrid_forecast = 0.5 * np.array(models[best_ml]) + 0.5 * np.array(models[best_dl])
-            hybrid_smape = smape(test, hybrid_forecast)
-            logger.info(f"Hybrid {best_ml} + {best_dl}: SMAPE = {hybrid_smape:.4f}")
-            if hybrid_smape < best_smape:
-                hybrid_model = f"{best_ml} + {best_dl}"
-                models[hybrid_model] = np.round(hybrid_forecast,3).tolist()
-                smape_scores[hybrid_model] = hybrid_smape
-
+    if best_stat_model and best_ml_model:
+        hybrid_model = try_hybrid(best_stat_model, best_ml_model)
+    elif best_ml_model and best_dl_model:
+        hybrid_model = try_hybrid(best_ml_model, best_dl_model)
+    
     # --- Final Selection ---
     best_model = min(smape_scores, key=smape_scores.get)
 

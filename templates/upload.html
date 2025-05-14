@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Upload Forecast</title>
     <script src="https://cdn.tailwindcss.com"></script>
-     <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
 </head>
 
 <body class="bg-gray-50 text-gray-800 font-sans">
@@ -16,7 +16,8 @@
         <div class="max-w-7xl mx-auto flex items-center justify-between px-6 py-5">
             <img src="{{ url_for('static', path='assets/logo.png') }}" alt="Logo" class="h-10">
             <nav class="space-x-6">
-                <a href="{{ url_for('index') }}" class="text-gray-700 hover:text-blue-600 transition font-medium">Home</a>
+                <a href="{{ url_for('index') }}"
+                    class="text-gray-700 hover:text-blue-600 transition font-medium">Home</a>
                 <a href="{{ url_for('upload') }}" class="text-blue-600 font-semibold underline">Upload</a>
                 <a href="/forecast.html" class="text-gray-700 hover:text-blue-600 transition font-medium">Forecast</a>
                 <a href="/results.html" class="text-gray-700 hover:text-blue-600 transition font-medium">Results</a>
@@ -64,12 +65,20 @@
         <!-- Scores Section -->
         <div class="flex justify-center mt-8" id="resultsWrapper">
             <div id="results" class="w-full max-w-4xl hidden">
-                <h2 class="text-2xl font-semibold mb-4 text-center">Forecast Results</h2>
+                <h2 class="text-3xl font-semibold mb-4 text-center">Forecast Results</h2>
                 <div id="tableContainer" class="flex justify-center flex-wrap gap-6">
                     <!-- Tables will be dynamically inserted here -->
                 </div>
             </div>
         </div>
+
+        <!-- Best Model Display -->
+        <div id="bestModelWrapper" class="w-full text-center mt-6 hidden">
+            <p id="bestModelText" class="text-2xl font-medium text-green-600">
+                <!-- Best model info will go here -->
+            </p>
+        </div>
+
 
         <!-- Model Selection -->
         <div class="flex justify-center mt-8" id="modelSectionWrapper">
@@ -107,7 +116,7 @@
             <!-- Chart 1 -->
             <div id="chart3" class="bg-white p-4 shadow rounded">
                 <h4 class="text-center font-semibold mb-2">Actual vs Forecast with Confidence Interval</h4>
-                <svg id= "currentChart" width="100%" height="300"></svg>
+                <svg id="currentChart" width="100%" height="300"></svg>
             </div>
 
             <!-- Chart 2 -->
@@ -205,12 +214,26 @@
                     colWrapper.appendChild(tableWrapper);
                     tableContainer.appendChild(colWrapper);
                 });
+
+                const bestModelWrapper = document.getElementById("bestModelWrapper");
+                const bestModelText = document.getElementById("bestModelText");
+
+                bestModelText.textContent = data.top_model_text;
+                bestModelWrapper.classList.remove("hidden");
                 // Inside runForecast.addEventListener AFTER rendering tables:
                 if (data.models && data.models.length > 0) {
-                    modelSelector.innerHTML = '<option value="">Select Model</option>' +
-                        data.models.map(model => `<option value="${model}">${model}</option>`).join('');
-                    modelSection.classList.remove('hidden');
+                    const filteredModels = data.models.filter(model => !model.includes('+'));
+
+                    if (filteredModels.length > 0) {
+                        modelSelector.innerHTML = '<option value="">Select Model</option>' +
+                            filteredModels.map(model => `<option value="${model}">${model}</option>`).join('');
+                        modelSection.classList.remove('hidden');
+                    } else {
+                        modelSelector.innerHTML = '';
+                        modelSection.classList.add('hidden');
+                    }
                 }
+
                 spinner.classList.add('hidden');
 
                 modelSelector.addEventListener("change", async () => {
@@ -263,7 +286,7 @@
                             colWrapper.appendChild(tableWrapper);
                             tableContainer.appendChild(colWrapper);
                         });
-                        
+
                         const currentItem = modelData.tables.filter(d => d.type === "current")[0];
                         const futureItem = modelData.tables.filter(d => d.type === "future")[0];
                         drawCurrentForecastChart(currentItem, "#currentChart");

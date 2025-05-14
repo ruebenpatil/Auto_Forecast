@@ -17,4 +17,5 @@ dependencies = [
     "uvicorn>=0.34.2",
     "xgboost>=3.0.0",
     "tensorflow",
+    "gunicorn>=23.0.0",
 ]

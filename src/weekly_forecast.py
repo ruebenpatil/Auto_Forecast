@@ -20,13 +20,19 @@ MIN_WEEKLY_DATA_SPAN = 104
 
 logger = setup_logger("WEEKLY")
 
-def load_and_parse_date(df, date_column="Week"):
+def load_and_parse_date(df, date_column="Date"):
+    df = df.copy()
+
+    if df[date_column].isnull().any():
+        logger.warning("Null values found in date column. Consider handling them before parsing.")
+
+    formats_to_try = ["%Y-%m-%d", "%d-%m-%Y", "%m/%d/%Y"]
     parsed = False
-    formats_to_try = ["%Y-%m-%d", "%d-%m-%Y", "%Y/%m/%d", "%d/%m/%Y"]
-    
+
     for fmt in formats_to_try:
         try:
-            df[date_column] = pd.to_datetime(df[date_column], format=fmt)
+            df[date_column] = pd.to_datetime(df[date_column], format=fmt, errors="raise")
+            logger.info(f"Successfully parsed dates using format: {fmt}")
             parsed = True
             break
         except ValueError:
@@ -34,12 +40,18 @@ def load_and_parse_date(df, date_column="Week"):
 
     if not parsed:
         try:
-            df[date_column] = pd.to_datetime(df[date_column])
+            df[date_column] = pd.to_datetime(df[date_column], infer_datetime_format=True, errors='raise')
+            logger.info("Parsed dates using fallback (inferred format).")
         except Exception as e:
-            logger.error("Unable to parse the 'Date' column. Please use consistent date format.")
+            logger.error("Unable to parse the 'Date' column. Please use a consistent format.")
             raise e
-            
+
+    df.sort_values(by=date_column, inplace=True)
     df.set_index(date_column, inplace=True)
+
+    if df.index.duplicated().any():
+        logger.warning("Duplicate dates found in the index. Consider aggregating or removing them.")
+
     logger.success("Date column successfully parsed and set as index.")
     return df
 

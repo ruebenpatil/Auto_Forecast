@@ -45,40 +45,49 @@ def load_and_parse_date(df, date_column="Month"):
     logger.debug(f"✅ {date_column} column successfully parsed and set as index.")
     return df
 
-def preprocess_data(df, target_column="Target"):
+def preprocess_data(df, target_column="Target", apply_log_transform=False):
+    df = df.copy()
     if len(df) < MIN_MONTHLY_DATA_SPAN:
-        logger.debug(f"❌ Insufficient data. Provide at least (~{MIN_MONTHLY_DATA_SPAN} months) of data.")
-        sys.exit()
+        raise ValueError(f"Insufficient data. Provide at least (~{MIN_MONTHLY_DATA_SPAN} periods) of data.")
     
     external_features = [col for col in df.columns if col != target_column]
-    df[external_features] = df[external_features].fillna(0)
+
+    if external_features:
+        logger.info(f"Filling NaNs in external features: {external_features}")
+        df[external_features] = df[external_features].fillna(0)
+
+    if df[target_column].isnull().all():
+        raise ValueError("All target values are missing. Cannot proceed with preprocessing.")
     
     if df[target_column].isnull().sum() > 0:
-        logger.debug("⚠️ Missing values detected. Applying forward fill (ffill).")
-        df[target_column].fillna(method='ffill', inplace=True)
+        logger.warning("Missing values detected in target. Applying forward fill.")
+        df[target_column].fillna(method="ffill", inplace=True)
+
         if df[target_column].isnull().sum() > 0:
-            logger.debug("⚠️ Some values are still missing. Applying linear interpolation.")
-            df[target_column].interpolate(method='linear', inplace=True)
-        logger.debug("⚠️ Forecast accuracy may be affected due to existence of missing values.")
+            logger.warning("Forward fill incomplete. Applying linear interpolation.")
+            df[target_column].interpolate(method="linear", inplace=True)
+
+        logger.warning("Forecast accuracy may be affected due to missing value imputation.")
     
     skewness_value = skew(df[target_column])
-    logger.debug(f"Skewness: {skewness_value}")
-    if abs(skewness_value) > 1:
-        logger.debug("⚠️ High skewness detected. Applying log transformation.")
-        df[target_column] = np.log(df[target_column] + 1)
+    logger.info(f"Skewness of target: {skewness_value:.3f}")
+    if apply_log_transform and abs(skewness_value) > 1:
+        logger.warning("High skewness detected. Applying log1p transformation.")
+        df[target_column] = np.log1p(df[target_column])
     else:
-        logger.debug("✅ Skewness is acceptable. No transformation applied.")
-    
+        logger.success("Skewness acceptable. No transformation applied.")
+
     Q1, Q3 = df[target_column].quantile([0.25, 0.75])
     IQR = Q3 - Q1
     lower_bound, upper_bound = Q1 - 1.5 * IQR, Q3 + 1.5 * IQR
     outliers = df[(df[target_column] < lower_bound) | (df[target_column] > upper_bound)]
-    
+
     if not outliers.empty:
-        logger.debug("⚠️ Outliers detected. Replacing with median.")
-        df.loc[df[target_column] < lower_bound, target_column] = df[target_column].median()
-        df.loc[df[target_column] > upper_bound, target_column] = df[target_column].median()
-    
+        logger.warning(f"{len(outliers)} outliers detected. Replacing with median.")
+        median_val = df[target_column].median()
+        df.loc[df[target_column] < lower_bound, target_column] = median_val
+        df.loc[df[target_column] > upper_bound, target_column] = median_val
+
     return df
 
 def create_lag_features(df, target_column="Target", max_lag=12):
@@ -87,47 +96,77 @@ def create_lag_features(df, target_column="Target", max_lag=12):
     df.dropna(inplace=True)
     return df
 
-def select_lag_features(df, target_column="Target"):
-    acf_vals = acf(df[target_column], nlags=12)[1:]
-    pacf_vals = pacf(df[target_column], nlags=12)[1:]
-    selected_lags = [i + 1 for i, (a, p) in enumerate(zip(acf_vals, pacf_vals)) if abs(a) > 0.2 or abs(p) > 0.2]
-    
+def select_lag_features(df, target_column="Target", max_lag=12, acf_threshold=0.2, pacf_threshold=0.2, vif_threshold=5.0):
+    # Compute ACF and PACF
+    acf_vals = acf(df[target_column], nlags=max_lag, fft=False)[1:]
+    pacf_vals = pacf(df[target_column], nlags=max_lag)[1:]
+
+    # Select lags based on threshold
+    selected_lags = [
+        lag for lag, (a, p) in enumerate(zip(acf_vals, pacf_vals), start=1)
+        if abs(a) > acf_threshold or abs(p) > pacf_threshold
+    ]
+
+    # Fallback: include all if nothing meets threshold
     if not selected_lags:
-        selected_lags = list(range(1, 13))
-    
-    selected_features = [f'lag_{lag}' for lag in selected_lags]
-    
-    # Remove multicollinearity using VIF
-    while len(selected_features) > 1:
-        vif_data = pd.DataFrame()
-        vif_data['Feature'] = selected_features
-        vif_data['VIF'] = [variance_inflation_factor(df[selected_features].values, i) for i in range(len(selected_features))]
-        
-        max_vif = vif_data['VIF'].max()
-        if max_vif > 5:
-            selected_features.remove(vif_data.loc[vif_data['VIF'].idxmax(), 'Feature'])
+        selected_lags = list(range(1, max_lag + 1))
+
+    selected_features = [f"lag_{lag}" for lag in selected_lags]
+    lag_df = df[selected_features].copy()
+
+    # Drop NA to avoid issues in VIF calculation
+    lag_df.dropna(inplace=True)
+
+    # Iteratively remove features with high VIF
+    while True:
+        vif = pd.Series(
+            [variance_inflation_factor(lag_df.values, i) for i in range(lag_df.shape[1])],
+            index=lag_df.columns,
+        )
+        max_vif = vif.max()
+        if max_vif > vif_threshold:
+            drop_feature = vif.idxmax()
+            selected_features.remove(drop_feature)
+            lag_df.drop(columns=drop_feature, inplace=True)
         else:
             break
 
     return selected_features
 
-def select_best_lags(train_features, test_features, train_target, test_target, model, max_lags=5):
-    best_rmse, best_lags = float("inf"), None
+def select_best_lags(train_features,test_features,train_target,test_target,model,
+                     max_lags=5,early_stopping=True,verbose=False):
+    best_rmse = float("inf")
+    best_lags = None
+
     all_lags = [col for col in train_features.columns if col.startswith("lag_")]
-    
-    for r in range(1, min(len(all_lags), max_lags) + 1):
+    max_r = min(len(all_lags), max_lags)
+
+    for r in range(1, max_r + 1):
         for lag_subset in combinations(all_lags, r):
             try:
-                train_subset = train_features[list(lag_subset)]
-                test_subset = test_features[list(lag_subset)]
-                model.fit(train_subset, train_target)
-                predictions = model.predict(test_subset)
+                X_train = train_features[list(lag_subset)]
+                X_test = test_features[list(lag_subset)]
+                model.fit(X_train, train_target)
+                predictions = model.predict(X_test)
                 rmse = np.sqrt(mean_squared_error(test_target, predictions))
+
+                if verbose:
+                    print(f"Lags: {lag_subset} -> RMSE: {rmse:.4f}")
+
                 if rmse < best_rmse:
-                    best_rmse, best_lags = rmse, list(lag_subset)
-            except Exception:
+                    best_rmse = rmse
+                    best_lags = list(lag_subset)
+
+                    if early_stopping and rmse == 0:
+                        if verbose:
+                            print("Early stopping: perfect prediction.")
+                        return best_lags
+
+            except Exception as e:
+                if verbose:
+                    print(f"Error with lags {lag_subset}: {e}")
                 continue
-    
+
     return best_lags if best_lags else all_lags
 
 def apply_lasso_selection(df, selected_features, target_column="Target", alpha=0.1):
@@ -140,17 +179,26 @@ def apply_lasso_selection(df, selected_features, target_column="Target", alpha=0
 def optimize_rolling_window(df, target_column="Target", min_window=3, max_window=36):
     best_window = min_window
     best_rmse = float("inf")
+
     train_size = int(len(df) * 0.8)
     train, test = df.iloc[:train_size], df.iloc[train_size:]
-    
+    test_values = test[target_column].values
+
     for window in range(min_window, max_window + 1):
         rolling_mean = train[target_column].rolling(window=window, min_periods=1).mean()
-        rmse = np.sqrt(mean_squared_error(test[target_column], rolling_mean[-len(test):]))
+        forecast = rolling_mean.iloc[-len(test):].values
+
+        # Pad forecast if it’s shorter than test due to indexing issues
+        if len(forecast) < len(test_values):
+            forecast = np.pad(forecast, (len(test_values) - len(forecast), 0), mode='edge')
+
+        rmse = np.sqrt(mean_squared_error(test_values, forecast))
         if rmse < best_rmse:
             best_rmse = rmse
             best_window = window
 
-    logger.debug(f"✅ Best rolling window found: {best_window}")
+    logger.success(f"Best rolling window found (Daily): {best_window} days")
+
     df[target_column] = df[target_column].rolling(window=best_window, min_periods=1).mean()
     return df
 

@@ -29,7 +29,7 @@ RUN uv pip install --system .
 
 # RUN uv pip install tensorflow
 # Expose FastAPI port
-EXPOSE 8000
+EXPOSE 80
 
 # Run the FastAPI app
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "80", "--reload"]

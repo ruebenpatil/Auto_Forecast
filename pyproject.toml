@@ -1,0 +1,20 @@
+[project]
+name = "auto-forecast"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "catboost>=1.2.8",
+    "fastapi[all,standard]>=0.115.12",
+    "lightgbm>=4.6.0",
+    "loguru>=0.7.3",
+    "optuna>=4.3.0",
+    "prophet>=1.1.6",
+    "scikit-learn>=1.6.1",
+    "starlette>=0.46.2",
+    "statsmodels>=0.14.4",
+    "uvicorn>=0.34.2",
+    "xgboost>=3.0.0",
+    "tensorflow",
+]

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Upload Forecast</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+
+<body class="bg-gray-100 text-gray-800 font-sans">
+
+    <!-- Header -->
+    <header class="sticky top-0 bg-white shadow z-50">
+        <div class="max-w-7xl mx-auto flex items-center justify-between px-6 py-5">
+            <img src="{{ url_for('static', path='assets/logo.png') }}" alt="Logo" class="h-10">
+            <nav class="space-x-6">
+                <a href="{{ url_for('index') }}" class="text-gray-700 hover:text-blue-600 transition font-medium">Home</a>
+                <a href="{{ url_for('upload') }}" class="text-blue-600 font-semibold underline">Upload</a>
+                <a href="/forecast.html" class="text-gray-700 hover:text-blue-600 transition font-medium">Forecast</a>
+                <a href="/results.html" class="text-gray-700 hover:text-blue-600 transition font-medium">Results</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Upload Section -->
+    <div class="max-w-4xl mx-auto px-6 py-12">
+        <h1 class="text-4xl font-bold mb-10 text-center text-blue-800">Upload Your CSV</h1>
+
+        <!-- File Upload -->
+        <div class="flex justify-center mb-8">
+            <input id="csvInput" type="file" accept=".csv"
+                class="block w-full max-w-xs text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:font-semibold file:bg-blue-100 file:text-blue-700 hover:file:bg-blue-200" />
+        </div>
+
+        <!-- Dropdown and Run Button -->
+        <div class="flex justify-center mb-8">
+            <div id="optionsSection" class="hidden w-full max-w-xs space-y-4">
+                <select id="frequency"
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    <option value="">Select Frequency</option>
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="monthly">Monthly</option>
+                </select>
+                <button id="runForecast"
+                    class="w-full py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition">
+                    Run Forecast
+                </button>
+            </div>
+        </div>
+
+        <!-- Spinner -->
+        <div id="spinner" class="hidden flex justify-center my-6">
+            <svg class="animate-spin h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none"
+                viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+            </svg>
+        </div>
+
+        <!-- Results Section -->
+        <div id="resultsWrapper" class="flex justify-center mt-10">
+            <div id="results" class="hidden w-full max-w-5xl">
+                <h2 class="text-2xl font-semibold text-center mb-6 text-gray-800">Forecast Results</h2>
+                <div id="tableContainer" class="flex flex-wrap justify-center gap-6">
+                    <!-- Tables will be dynamically inserted here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Model Selection -->
+        <div id="modelSectionWrapper" class="flex justify-center mt-12">
+            <div id="modelSection" class="hidden w-full max-w-md">
+                <h3 class="text-xl font-semibold text-center mb-4">Select Model</h3>
+                <select id="modelSelector"
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    <option value="">Select Model</option>
+                    <!-- Options populated dynamically -->
+                </select>
+            </div>
+        </div>
+
+        <!-- Spinner -->
+        <div id="spinner_model" class="hidden flex justify-center my-6">
+            <svg class="animate-spin h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none"
+                viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+            </svg>
+        </div>
+
+        <!-- Model Results -->
+        <div id="modelResults" class="hidden mt-12 w-full max-w-7xl mx-auto">
+            <div id="modelTableContainer" class="flex flex-wrap justify-center gap-6">
+                <!-- Tables will be inserted here -->
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div id="chartContainer" class="hidden mt-12 grid grid-cols-1 md:grid-cols-2 gap-8 max-w-6xl mx-auto">
+            <!-- Chart 1 -->
+            <div class="bg-white shadow-md rounded-xl p-6">
+                <h4 class="text-center text-lg font-semibold mb-4 text-gray-700">Actual vs Forecast with Confidence Interval</h4>
+                <svg id="currentChart" class="w-full" height="300"></svg>
+            </div>
+
+            <!-- Chart 2 -->
+            <div class="bg-white shadow-md rounded-xl p-6">
+                <h4 class="text-center text-lg font-semibold mb-4 text-gray-700">Future Forecast with Confidence Interval</h4>
+                <svg id="futureChart" class="w-full" height="300"></svg>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

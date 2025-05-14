@@ -62,6 +62,7 @@ def evaluate_ts_models(train, test, train_features, test_features, n_trials=10):
 
     # --- Run All Models ---
     for name, func in model_functions.items():
+        print(f"Running {name}...")
         safe_run_model(name, func)
 
     if not smape_scores:
@@ -73,7 +74,7 @@ def evaluate_ts_models(train, test, train_features, test_features, n_trials=10):
 
     selected_models = {
         name: pred for name, pred in models.items()
-        if smape_scores.get(name, float("inf")) <= smape_threshold and abs(mfb_scores.get(name, float("inf"))) <= 0.1
+        if smape_scores.get(name, float("inf")) <= smape_threshold or abs(mfb_scores.get(name, float("inf"))) <= 0.1
     }
 
     logger.success("Models Used in Simple Average:")
@@ -81,26 +82,29 @@ def evaluate_ts_models(train, test, train_features, test_features, n_trials=10):
         logger.debug(f"- {model}")
 
     # --- Simple Average ---
-    simple_avg_forecast = np.mean(list(selected_models.values()), axis=0)
-    smape_scores["Simple Average"] = smape(test, simple_avg_forecast)
-    mfb_scores["Simple Average"] = mean_relative_forecast_bias(test, simple_avg_forecast)
+    if len(selected_models) > 0:
+        simple_avg_forecast = np.mean(list(selected_models.values()), axis=0)
+        smape_scores["Simple Average"] = smape(test, simple_avg_forecast)
+        mfb_scores["Simple Average"] = mean_relative_forecast_bias(test, simple_avg_forecast)
 
     # --- Weighted Average ---
     array_models = {
-        name: pred for name, pred in models.items()
-        if isinstance(pred, np.ndarray) and smape_scores.get(name, 0) > 0
+        name: np.array(pred) for name, pred in models.items()
+        if smape_scores.get(name, 0) > 0
     }
-    inverse_weights = {name: 1 / smape_scores[name] for name in array_models}
-    total_weight = sum(inverse_weights.values())
-    weights = {name: w / total_weight for name, w in inverse_weights.items()}
+    if len(array_models) > 0:
+        inverse_weights = {name: 1 / smape_scores[name] for name in array_models}
+        total_weight = sum(inverse_weights.values())
+        weights = {name: w / total_weight for name, w in inverse_weights.items()}
 
-    weighted_avg_forecast = sum(weights[name] * array_models[name] for name in weights)
-    smape_scores["Weighted Average"] = smape(test, weighted_avg_forecast)
-    mfb_scores["Weighted Average"] = mean_relative_forecast_bias(test, weighted_avg_forecast)
+        weighted_avg_forecast = sum(weights[name] * array_models[name] for name in weights)
+        weighted_avg_forecast = np.round(weighted_avg_forecast, 3).tolist()
+        smape_scores["Weighted Average"] = smape(test, weighted_avg_forecast)
+        mfb_scores["Weighted Average"] = mean_relative_forecast_bias(test, weighted_avg_forecast)
 
     # --- Hybrid Model ---
     hybrid_model = None
-    if smape_scores["Weighted Average"] < best_smape:
+    if smape_scores.get("Weighted Average", float("inf")) < best_smape:
         hybrid_model = "Weighted Average"
     else:
         stat_models = ["ARIMA", "SARIMA", "ETS", "Holt-Winters"]

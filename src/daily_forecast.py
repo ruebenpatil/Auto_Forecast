@@ -16,7 +16,6 @@ from src.models.evaluate_models import evaluate_ts_models
 optuna.logging.set_verbosity(optuna.logging.WARNING)
 warnings.simplefilter("ignore")
 
-N_TRIALS = 2
 MIN_DAILY_DATA_SPAN = 90
 
 
@@ -231,9 +230,9 @@ def full_daily_pipeline(df, target_column="Target"):
 
 
 # Run pipeline
-def compute_daily_forecast(df_daily):
+def compute_daily_forecast(df_daily, n_trials):
     df, X_train, X_test, y_train, y_test, features = full_daily_pipeline(df_daily)
-    daily_result = evaluate_ts_models(y_train, y_test, X_train, X_test, 20)
+    daily_result = evaluate_ts_models(y_train, y_test, X_train, X_test, n_trials)
     y_test = dict(zip(y_test.index.strftime("%Y-%m-%d"), y_test.values.tolist()))
     daily_result = {**daily_result, "y_test": y_test, "freq": "D"}
     return daily_result

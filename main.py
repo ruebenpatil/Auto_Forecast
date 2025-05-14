@@ -58,11 +58,11 @@ async def forecast(request:Request, file: UploadFile = File(...), frequency: str
     df = pd.read_csv(StringIO(content.decode("utf-8")))
 
     if frequency.lower() == "daily":
-        result = compute_daily_forecast(df)
+        result = compute_daily_forecast(df, 20)
     elif frequency.lower() == "monthly":
-        result = compute_monthly_forecast(df)
+        result = compute_monthly_forecast(df, 20)
     elif frequency.lower() == "weekly":
-        result = compute_weekly_forecast(df)
+        result = compute_weekly_forecast(df,20)
 
     
     smape_scores_dict = result.get("smape_scores")

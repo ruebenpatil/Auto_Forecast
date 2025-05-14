@@ -185,9 +185,9 @@ def full_monthly_pipeline(df, target_column="Target"):
 
 
 
-def compute_monthly_forecast(df_monthly):
+def compute_monthly_forecast(df_monthly, n_trials):
     df, X_train, X_test, y_train, y_test, features = full_monthly_pipeline(df_monthly)
-    monthly_result = evaluate_ts_models(y_train, y_test, X_train, X_test, 20)
+    monthly_result = evaluate_ts_models(y_train, y_test, X_train, X_test, n_trials)
     y_test = dict(zip(y_test.index.strftime("%Y-%m-%d"), y_test.values.tolist()))
     monthly_result = {**monthly_result, "y_test": y_test, "freq": "MS"}
     return monthly_result

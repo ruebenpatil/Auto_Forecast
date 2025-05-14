@@ -16,7 +16,6 @@ from src.models.evaluate_models import evaluate_ts_models
 optuna.logging.set_verbosity(optuna.logging.WARNING)
 warnings.simplefilter("ignore")
 
-N_TRIALS = 20
 MIN_WEEKLY_DATA_SPAN = 104
 
 logger = setup_logger("WEEKLY")
@@ -160,19 +159,16 @@ def full_weekly_pipeline(df_weekly, target_column="Sales"):
     df = preprocess_data(df, target_column)
     df = create_lag_features(df, target_column)
     selected_features = select_lag_features(df, target_column)
-    
     # Split for RMSE lag optimization
     split_idx = int(len(df) * 0.8)
     train_df, test_df = df.iloc[:split_idx], df.iloc[split_idx:]
     train_features, test_features = train_df[selected_features], test_df[selected_features]
     train_target, test_target = train_df[target_column], test_df[target_column]
-    
     model = LinearRegression()
     selected_features = select_best_lags(train_features, test_features, train_target, test_target, model)
     
     # Final refinement using Lasso
     selected_features = apply_lasso_selection(df, selected_features, target_column)
-    
     # Rolling window smoothing
     df = optimize_rolling_window(df, target_column)
     
@@ -187,9 +183,9 @@ def full_weekly_pipeline(df_weekly, target_column="Sales"):
 # --------------------------
 # Run Pipeline
 # --------------------------
-def compute_weekly_forecast(df_weekly):
+def compute_weekly_forecast(df_weekly, n_trials):
     df, X_train, X_test, y_train, y_test, features = full_weekly_pipeline(df_weekly)
-    monthly_result = evaluate_ts_models(y_train, y_test, X_train, X_test, 20)
+    monthly_result = evaluate_ts_models(y_train, y_test, X_train, X_test, n_trials)
     y_test = dict(zip(y_test.index.strftime("%Y-%m-%d"), y_test.values.tolist()))
     monthly_result = {**monthly_result, "y_test": y_test, "freq": "W-MON"}
     return monthly_result

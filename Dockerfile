@@ -27,7 +27,7 @@ COPY . .
 # Install Python dependencies with uv
 RUN uv pip install --system .
 
-RUN uv pip install tensorflow
+# RUN uv pip install tensorflow
 # Expose FastAPI port
 EXPOSE 8000
 

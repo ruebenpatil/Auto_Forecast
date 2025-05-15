@@ -28,7 +28,7 @@ def compute_daily_forecast(df_daily, n_trials):
 
 def compute_weekly_forecast(df_weekly, n_trials):
     formats_to_try = ["%Y-%m-%d", "%d-%m-%Y", "%m/%d/%Y"]
-    target_column = "Sales"
+    target_column = "Target"
     date_column = "Week"
     min_weekly_data_span = 104
     max_lags = 52

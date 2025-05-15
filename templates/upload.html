@@ -7,23 +7,57 @@
     <title>Upload | Auto Forecast</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://d3js.org/d3.v7.min.js"></script>
+      <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+          colors: {
+            'brand-blue': '#3B82F6',
+            'brand-teal': '#14B8A6',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    
+    .hero-gradient {
+      background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.7));
+    }
+    
+    .feature-card {
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .feature-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+  </style>
 </head>
 
 <body class="bg-gray-50 text-gray-800 font-sans min-h-screen flex flex-col">
 
     <!-- Header -->
-    <header class="sticky top-0 bg-white shadow z-50">
-        <div class="max-w-7xl mx-auto flex items-center justify-between px-6 py-5">
-            <img src="{{ url_for('static', path='assets/logo.png') }}" alt="Logo" class="h-10">
-            <nav class="space-x-6">
-                <a href="{{ url_for('index') }}"
-                    class="text-gray-700 hover:text-blue-600 transition font-medium">Home</a>
-                <a href="{{ url_for('upload') }}" class="text-blue-600 font-semibold underline">Upload</a>
-                <a href="{{ url_for('instructions') }}"
-                    class="text-gray-700 hover:text-blue-600 transition font-medium">Instructions</a>
-            </nav>
-        </div>
-    </header>
+    <header class="sticky top-0 bg-white shadow-md z-50">
+    <div class="max-w-7xl mx-auto flex items-center justify-between px-6 py-4">
+      <div class="flex items-center">
+        <img src="{{ url_for('static', path='assets/logo.png') }}" alt="Logo" class="h-12">
+      </div>
+      <nav class="space-x-8">
+        <a href="{{ url_for('index') }}"
+          class="text-gray-700 hover:text-brand-blue hover:border-b-2 hover:border-brand-blue transition duration-200 font-medium px-1 py-1">Home</a>
+        <a href="{{ url_for('upload') }}" 
+          class="text-brand-blue border-b-2 border-brand-blue hover:text-blue-700 transition font-medium px-1 py-1">Upload</a>
+        <a href="{{ url_for('instructions') }}" 
+          class="text-gray-700 hover:text-brand-blue hover:border-b-2 hover:border-brand-blue transition duration-200 font-medium px-1 py-1">Instructions</a>
+      </nav>
+    </div>
+  </header>
 
     <!-- Upload Section -->
     <main class="flex-grow">

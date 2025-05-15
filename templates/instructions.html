@@ -7,6 +7,37 @@
     <title>Instructions | Auto Forecast</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        'brand-blue': '#3B82F6',
+                        'brand-teal': '#14B8A6',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        .hero-gradient {
+            background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.7));
+        }
+
+        .feature-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+    </style>
 </head>
 
 <body class="bg-gray-50 text-gray-800 font-sans min-h-screen flex flex-col">
@@ -16,11 +47,11 @@
             <img src="{{ url_for('static', path='assets/logo.png') }}" alt="Logo" class="h-12">
             <nav class="space-x-8">
                 <a href="{{ url_for('index') }}"
-                    class="text-gray-700 hover:text-blue-600 font-medium transition duration-200">Home</a>
+                    class="text-gray-700 hover:text-brand-blue hover:border-b-2 hover:border-brand-blue transition duration-200 font-medium px-1 py-1">Home</a>
                 <a href="{{ url_for('upload') }}"
-                    class="text-gray-700 hover:text-blue-600 font-medium transition duration-200">Upload</a>
+                    class="text-gray-700 hover:text-brand-blue hover:border-b-2 hover:border-brand-blue transition duration-200 font-medium px-1 py-1">Upload</a>
                 <a href="{{ url_for('instructions') }}"
-                    class="text-blue-600 font-semibold border-b-2 border-blue-600 pb-1 transition duration-200">Instructions</a>
+                    class="text-brand-blue border-b-2 border-brand-blue hover:text-blue-700 transition font-medium px-1 py-1">Instructions</a>
             </nav>
         </div>
     </header>
@@ -117,10 +148,20 @@
                                 <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100 mb-4">
                                     <div class="flex space-x-4">
                                         <div class="flex-1">
-                                            <code
-                                                class="bg-yellow-100 px-2 py-1 rounded font-mono text-yellow-800">Date</code>
+                                            <div class="space-x-1">
+                                                <code
+                                                    class="bg-yellow-100 px-2 py-1 rounded font-mono text-yellow-800">Date</code>
+                                                <span>/</span>
+                                                <code
+                                                    class="bg-yellow-100 px-2 py-1 rounded font-mono text-yellow-800">Month</code>
+                                                <span>/</span>
+                                                <code
+                                                    class="bg-yellow-100 px-2 py-1 rounded font-mono text-yellow-800">Week</code>
+                                            </div>
                                             <p class="text-gray-600 mt-1">Timestamp for each observation</p>
                                         </div>
+
+
                                         <div class="flex-1">
                                             <code
                                                 class="bg-yellow-100 px-2 py-1 rounded font-mono text-yellow-800">Target</code>

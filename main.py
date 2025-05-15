@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, Form, File, Request
+from fastapi import FastAPI, UploadFile, Form, File, Request, Query
 from fastapi.responses import JSONResponse
 from starlette.middleware.sessions import SessionMiddleware
 
@@ -11,6 +11,7 @@ import numpy as np
 from io import StringIO
 import time
 import json
+import uuid
 
 from src.forecast import compute_daily_forecast, compute_monthly_forecast, compute_weekly_forecast
 from src.utils.logger import setup_logger
@@ -18,6 +19,9 @@ from src.utils.logger import setup_logger
 WORKING_DIR = Path.cwd().resolve()
 TEMPLATE_PATH = WORKING_DIR.joinpath("templates")
 STATIC_PATH = WORKING_DIR.joinpath("static")
+SESSION_DIR = WORKING_DIR.joinpath("session")
+
+SESSION_DIR.mkdir(exist_ok=True)
 
 logger = setup_logger("MAIN")
 
@@ -81,17 +85,21 @@ async def forecast(request:Request, file: UploadFile = File(...), frequency: str
         ]
     
     best_model = result.get("best_model")
+    session_key = str(uuid.uuid4())
     
-    request.session.update({
+    session_data = {
             "predictions_dict": result.get("models"),
             "best_model": best_model,
             "simple_avg_forecast": result.get("simple_avg_forecast"),
             "weighted_avg_forecast": result.get("weighted_avg_forecast"),
             "y_test": result.get("y_test"),
             "freq": result.get("freq"),
-        })
+        }
+    with open(SESSION_DIR.joinpath(f"{session_key}.json"), "w") as f:
+        json.dump(session_data, f, indent=4)
+
     
-    logger.debug(f"Session data: {request.session}")
+    logger.debug(f"Session data: {session_data}")
     
     
     return JSONResponse(
@@ -99,27 +107,30 @@ async def forecast(request:Request, file: UploadFile = File(...), frequency: str
             "message": "Forecasting completed successfully",
             "tables": tables,
             "models": list(common_list),
+            "session_key": session_key,
             "top_model_text": f"Best Model: {result.get('best_model')}  (SMAPE: {smape_scores_dict[best_model]:.3f})",
         },
         status_code=200,
     )
 
 @app.get("/api/forecast/{model_name}")
-async def forecast_model(model_name: str, request: Request):
+async def forecast_model(request: Request, model_name: str, session_key: str = Query(...)):
+    with open(SESSION_DIR.joinpath(f"{session_key}.json"), "r") as f:
+        session_data = json.load(f)
     logger.debug(f"--------------- {model_name} --------------------")
-    logger.debug(f"Session data: {request.session}")
-    y_test = request.session.get("y_test")
+    logger.debug(f"Session data: {session_data}")
+    y_test = session_data.get("y_test")
     y_test = pd.Series(y_test)
     y_test.index = pd.to_datetime(y_test.index)
 
     forecast_horizon = len(y_test)
-    models = request.session.get("predictions_dict")
-    best_model = request.session.get("best_model")
+    models = session_data.get("predictions_dict")
+    best_model = session_data.get("best_model")
 
     if model_name == "Simple Average":
-        chosen_forecast = request.session.get("simple_avg_forecast")
+        chosen_forecast = session_data.get("simple_avg_forecast")
     elif model_name == "Weighted Average":
-        chosen_forecast = request.session.get("weighted_avg_forecast")
+        chosen_forecast = session_data.get("weighted_avg_forecast")
     elif model_name in models:
         model_output = models[model_name]
         if model_name == "Prophet":
@@ -151,7 +162,7 @@ async def forecast_model(model_name: str, request: Request):
 
     # Future forecast dates
     last_test_date = y_test.index[-1]
-    date_frequency = request.session.get("freq")
+    date_frequency = session_data.get("freq")
 
     if date_frequency == "D":
         last_test_date = last_test_date + pd.Timedelta(days=1)

@@ -174,6 +174,10 @@
                 });
                 const data = await response.json();
 
+                const sessionKey = data.session_key;
+
+                sessionStorage.setItem("session_key", sessionKey);
+
                 const resultsWrapper = document.getElementById('results');
                 resultsWrapper.classList.remove('hidden');
 
@@ -222,7 +226,7 @@
                 bestModelWrapper.classList.remove("hidden");
                 // Inside runForecast.addEventListener AFTER rendering tables:
                 if (data.models && data.models.length > 0) {
-                    const filteredModels = data.models.filter(model => !model.includes('+'));
+                    const filteredModels = data.models;
 
                     if (filteredModels.length > 0) {
                         modelSelector.innerHTML = '<option value="">Select Model</option>' +
@@ -242,7 +246,9 @@
                     spinnerModel.classList.remove('hidden');
                     chartContainer.classList.add('hidden');
                     try {
-                        const response = await fetch(`/api/forecast/${selectedModel}`,
+                        const sessionKeyNew = sessionStorage.getItem("session_key");
+                        console.log(sessionKeyNew);
+                        const response = await fetch(`/api/forecast/${selectedModel}?session_key=${sessionKeyNew}`,
                             { method: 'GET', credentials: "include" });
                         const modelData = await response.json();
 

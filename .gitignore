@@ -2,6 +2,7 @@
 logs
 catboost_info/
 data/
+session/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

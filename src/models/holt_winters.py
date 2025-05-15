@@ -12,7 +12,7 @@ def get_seasonal_period(data):
     if inferred_freq in ["D", "B"]:
         return 7
     elif inferred_freq in ["W", "W-SUN", "W-MON"]:
-        return 52
+        return 12
     elif inferred_freq in ["MS", "M"]:
         return 12
     return max(2, min(24, len(data) // 2))

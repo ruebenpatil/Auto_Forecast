@@ -10,7 +10,6 @@ from pathlib import Path
 import pandas as pd
 import numpy as np
 from io import StringIO
-import time
 import json
 import uuid
 
@@ -28,7 +27,7 @@ SESSION_DIR = WORKING_DIR.joinpath("session")
 
 SESSION_DIR.mkdir(exist_ok=True)
 
-logger = setup_logger("MAIN")
+logger = setup_logger(__name__)
 
 
 app = FastAPI()
@@ -57,7 +56,6 @@ async def forecast(
             f"=============================== {file.filename}========================================="
         )
         logger.debug(f"Received file: {file.filename}")
-        start_time = time.time()
 
         content = await file.read()
         df = pd.read_csv(StringIO(content.decode("utf-8")))

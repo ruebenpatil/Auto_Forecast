@@ -18,7 +18,7 @@ from src.utils.metrics import (
 def get_seasonal_period(data):
     inferred_freq = pd.infer_freq(data.index)
     if inferred_freq in ["W", "W-MON", "W-SUN"]:
-        return 52  # Weekly data
+        return 12  # Weekly data
     elif inferred_freq in ["MS", "M"]:
         return 12  # Monthly data
     elif inferred_freq in ["D", "B"]:

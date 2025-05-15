@@ -30,10 +30,18 @@
         <h1 class="text-4xl font-bold mb-10 text-center text-blue-800">Upload Your CSV</h1>
 
         <!-- File Upload -->
-        <div class="flex justify-center mb-8">
+        <div class="flex flex-col items-center mb-8">
             <input id="csvInput" type="file" accept=".csv"
+            onchange="validateFile(this)"
                 class="block w-full max-w-xs text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:font-semibold file:bg-blue-100 file:text-blue-700 hover:file:bg-blue-200" />
+
+            <!-- File size note -->
+            <p class="mt-3 text-sm text-gray-600 text-center max-w-md">
+                ⚠️ For best performance, please upload a CSV file under <span class="font-semibold text-blue-700">10
+                    MB</span>.<br> Larger files may slow down processing.
+            </p>
         </div>
+
 
         <!-- Dropdown and Run Button -->
         <div class="flex justify-center mb-8">
@@ -127,6 +135,17 @@
         </div>
 
     </section>
+
+    <script>
+        function validateFile(input) {
+            const maxSizeMB = 10;
+            const file = input.files[0];
+            if (file && file.size > maxSizeMB * 1024 * 1024) {
+                alert("File is too large! Please upload a file under 10 MB.");
+                input.value = ""; // Reset file input
+            }
+        }
+    </script>
 
     <script type="text/javascript" src="{{ url_for('static', path='js/currentChart.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', path='js/futureChart.js') }}"></script>

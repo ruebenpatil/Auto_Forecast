@@ -4,140 +4,311 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Auto Forecast</title>
+  <title>Auto Forecast | Forecasting Made Easy</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+          colors: {
+            'brand-blue': '#3B82F6',
+            'brand-teal': '#14B8A6',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    
+    .hero-gradient {
+      background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.7));
+    }
+    
+    .feature-card {
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .feature-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+  </style>
 </head>
 
 <body class="bg-gray-50 text-gray-800 font-sans">
   <!-- Header -->
-  <header class="sticky top-0 bg-white shadow z-50">
-    <div class="max-w-7xl mx-auto flex items-center justify-between px-6 py-5">
-      <img src="{{ url_for('static', path='assets/logo.png') }}" alt="Logo" class="h-10">
-      <nav class="space-x-6">
+  <header class="sticky top-0 bg-white shadow-md z-50">
+    <div class="max-w-7xl mx-auto flex items-center justify-between px-6 py-4">
+      <div class="flex items-center">
+        <img src="{{ url_for('static', path='assets/logo.png') }}" alt="Logo" class="h-12">
+      </div>
+      <nav class="space-x-8">
         <a href="{{ url_for('index') }}"
-          class="text-blue-600 hover:text-blue-600 transition font-medium underline">Home</a>
-        <a href="{{ url_for('upload') }}" class="text-gray-700 hover:text-blue-600 font-semibold">Upload</a>
-        <a href="{{ url_for('index') }}" class="text-gray-700 hover:text-blue-600 transition font-medium">Forecast</a>
-        <a href="{{ url_for('index') }}" class="text-gray-700 hover:text-blue-600 transition font-medium">Results</a>
+          class="text-brand-blue border-b-2 border-brand-blue hover:text-blue-700 transition font-medium px-1 py-1">Home</a>
+        <a href="{{ url_for('upload') }}" 
+          class="text-gray-700 hover:text-brand-blue hover:border-b-2 hover:border-brand-blue transition duration-200 font-medium px-1 py-1">Upload</a>
+        <a href="{{ url_for('instructions') }}" 
+          class="text-gray-700 hover:text-brand-blue hover:border-b-2 hover:border-brand-blue transition duration-200 font-medium px-1 py-1">Instructions</a>
       </nav>
     </div>
   </header>
 
-  <!-- Video Section -->
-  <section class="relative h-[650px] w-full overflow-hidden mb-20">
+  <!-- Hero Video Section -->
+  <section class="relative h-[700px] w-full overflow-hidden mb-24">
     <video class="w-full h-full object-cover" muted autoplay loop>
       <source src={{ url_for('static', path="assets/intro.mp4" ) }} type="video/mp4">
     </video>
-    <div class="absolute inset-0 flex flex-col justify-center items-center text-white bg-black/40 text-center">
-      <h1 class="text-7xl font-bold mb-4">Forecasting Made Easy</h1>
-      <h1 class="text-7xl font-bold mb-40">with Auto Forecast</h1>
-      <p class="text-lg">No Data Science? No Problem. Auto Forecast Has You Covered.</p>
+    <div class="absolute inset-0 flex flex-col justify-center items-center text-white hero-gradient text-center">
+      <div class="max-w-5xl px-4">
+        <h1 class="text-5xl md:text-7xl font-bold mb-6 leading-tight">
+          <span class="block mb-2">Forecasting Made Easy</span>
+          <span class="text-brand-blue">with Auto Forecast</span>
+        </h1>
+        <p class="text-xl md:text-2xl mb-12 text-gray-100 max-w-3xl mx-auto">
+          No Data Science? No Problem. Transform your data into actionable predictions with just a few clicks.
+        </p>
+        <a href="{{ url_for('upload') }}"
+          class="px-8 py-4 bg-brand-blue text-white rounded-full text-lg font-medium hover:bg-blue-700 hover:shadow-lg transform transition hover:-translate-y-1 inline-block">
+          <i class="fas fa-upload mr-2"></i> Start Forecasting Now
+        </a>
+      </div>
     </div>
   </section>
 
-  <!-- Upload & Graph Section -->
-  <section class="max-w-7xl mx-auto px-6 py-12 grid md:grid-cols-2 gap-10 items-center">
-    <div>
-      <h1 class="text-5xl font-bold mb-4">Empowering</h1>
-      <h1 class="text-5xl font-bold mb-4">Forecasting Through</h1>
-      <h1 class="text-5xl font-bold mb-4">Innovation</h1>
-      <p class="text-lg mb-10">Upload. Analyze. Optimize. Predict. Your Future in a Click.</p>
+  <!-- Value Proposition Section -->
+  <section class="max-w-7xl mx-auto px-6 py-16 grid md:grid-cols-2 gap-16 items-center mb-24">
+    <div class="order-2 md:order-1">
+      <h2 class="text-4xl md:text-5xl font-bold mb-6 leading-tight text-gray-800">
+        <span class="block">Empowering</span>
+        <span class="block">Forecasting Through</span>
+        <span class="block text-brand-blue">Innovation</span>
+      </h2>
+      <p class="text-lg text-gray-600 mb-8 leading-relaxed">
+        Upload. Analyze. Optimize. Predict. Visualize your future with powerful forecasting algorithms designed for everyone. 
+        No technical expertise required.
+      </p>
+      <div class="space-y-4 mb-10">
+        <div class="flex items-start">
+          <div class="flex-shrink-0 bg-blue-100 rounded-full p-2 mr-4">
+            <svg class="w-6 h-6 text-brand-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="font-semibold text-gray-800">Accurate Predictions</h3>
+            <p class="text-gray-600">State-of-the-art algorithms for reliable time series forecasting</p>
+          </div>
+        </div>
+        <div class="flex items-start">
+          <div class="flex-shrink-0 bg-blue-100 rounded-full p-2 mr-4">
+            <svg class="w-6 h-6 text-brand-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="font-semibold text-gray-800">Save Time</h3>
+            <p class="text-gray-600">Get forecasts in seconds, not days or weeks</p>
+          </div>
+        </div>
+        <div class="flex items-start">
+          <div class="flex-shrink-0 bg-blue-100 rounded-full p-2 mr-4">
+            <svg class="w-6 h-6 text-brand-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="font-semibold text-gray-800">Easy to Use</h3>
+            <p class="text-gray-600">No coding or technical expertise required</p>
+          </div>
+        </div>
+      </div>
       <a href="{{ url_for('upload') }}"
-        class="w-1/2 px-8 py-4 bg-gray-600 text-white rounded-3xl text-3xl hover:bg-green-700 text-center block">
+        class="px-8 py-4 bg-gray-800 text-white rounded-full text-lg font-medium hover:bg-gray-700 transition inline-flex items-center">
         Upload CSV
+        <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+        </svg>
       </a>
     </div>
-    <div>
-      <img src={{ url_for('static', path="assets/stock.png" ) }} alt="Time Series Graph" class="rounded-xl shadow-lg">
+    <div class="order-1 md:order-2">
+      <img src={{ url_for('static', path="assets/stock.png" ) }} alt="Time Series Graph" 
+        class="rounded-xl shadow-xl hover:shadow-2xl transition duration-300 transform hover:scale-105">
     </div>
   </section>
 
-  <!-- Forecasting Cards -->
-  <section class="bg-teal-100 py-12">
-    <h2 class="text-center text-4xl font-semibold mb-5">Forecasting Web App</h2>
-    <p class="text-center text-lg mb-10">Transform your time series data into actionable insights with our user-friendly
-      web application.</p>
-    <div class="max-w-7xl mx-auto grid md:grid-cols-3 gap-6 px-6">
-      <div class="bg-teal-100 rounded-xl p-0 text-center">
-        <img src={{ url_for('static', path="assets/upload.jpeg" ) }} alt="Card 1"
-          class="rounded-xl mb-4 h-60 w-full object-cover">
-        <h3 class="text-xl font-medium mb-2">Data Upload</h3>
-        <p class="px-4">Upload your CSV data and let our app run advanced forecasting models for you.</p>
+  <!-- Features Section -->
+  <section class="bg-gradient-to-b from-teal-50 to-white py-20">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="text-center mb-16">
+        <h2 class="text-4xl font-bold mb-4 text-gray-800">Forecasting Web App</h2>
+        <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+          Transform your time series data into actionable insights with our user-friendly web application.
+        </p>
       </div>
-      <div class="bg-teal-100 rounded-xl p-0 text-center">
-        <img src={{ url_for('static', path="assets/compare.jpg" ) }} alt="Card 2"
-          class="rounded-xl mb-4 h-60 w-full object-cover">
-        <h3 class="text-xl font-medium mb-2">Model Comparison Tool</h3>
-        <p class="px-4">Easily compare multiple forecasting models and choose the best one for your data needs.</p>
-      </div>
-      <div class="bg-teal-100 rounded-xl p-0 text-center">
-        <img src={{ url_for('static', path="assets/ui.jpg" ) }} alt="Card 3"
-          class="rounded-xl mb-4 h-60 w-full object-cover">
-        <h3 class="text-xl font-medium mb-2">User-Friendly Interface</h3>
-        <p class="px-4">Select your preferred forecasting frequency: monthly, weekly, or daily, and get accurate
-          predictions.</p>
+      
+      <div class="grid md:grid-cols-3 gap-8">
+        <!-- Feature Card 1 -->
+        <div class="bg-white rounded-2xl shadow-lg overflow-hidden feature-card">
+          <div class="h-64 overflow-hidden">
+            <img src={{ url_for('static', path="assets/upload.jpeg" ) }} alt="Data Upload" 
+              class="w-full h-full object-cover transform hover:scale-110 transition duration-500">
+          </div>
+          <div class="p-6">
+            <div class="bg-teal-100 w-12 h-12 rounded-full flex items-center justify-center mb-4">
+              <svg class="w-6 h-6 text-brand-teal" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                  d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+              </svg>
+            </div>
+            <h3 class="text-xl font-semibold mb-3 text-gray-800">Simple Data Upload</h3>
+            <p class="text-gray-600 leading-relaxed">
+              Upload your CSV data and let our app run advanced forecasting models for you. No technical expertise required.
+            </p>
+          </div>
+        </div>
+        
+        <!-- Feature Card 2 -->
+        <div class="bg-white rounded-2xl shadow-lg overflow-hidden feature-card">
+          <div class="h-64 overflow-hidden">
+            <img src={{ url_for('static', path="assets/compare.jpg" ) }} alt="Model Comparison Tool" 
+              class="w-full h-full object-cover transform hover:scale-110 transition duration-500">
+          </div>
+          <div class="p-6">
+            <div class="bg-teal-100 w-12 h-12 rounded-full flex items-center justify-center mb-4">
+              <svg class="w-6 h-6 text-brand-teal" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+            </div>
+            <h3 class="text-xl font-semibold mb-3 text-gray-800">Model Comparison Tool</h3>
+            <p class="text-gray-600 leading-relaxed">
+              Easily compare multiple forecasting models and choose the best one for your specific data needs.
+            </p>
+          </div>
+        </div>
+        
+        <!-- Feature Card 3 -->
+        <div class="bg-white rounded-2xl shadow-lg overflow-hidden feature-card">
+          <div class="h-64 overflow-hidden">
+            <img src={{ url_for('static', path="assets/ui.jpg" ) }} alt="User-Friendly Interface" 
+              class="w-full h-full object-cover transform hover:scale-110 transition duration-500">
+          </div>
+          <div class="p-6">
+            <div class="bg-teal-100 w-12 h-12 rounded-full flex items-center justify-center mb-4">
+              <svg class="w-6 h-6 text-brand-teal" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                  d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
+              </svg>
+            </div>
+            <h3 class="text-xl font-semibold mb-3 text-gray-800">User-Friendly Interface</h3>
+            <p class="text-gray-600 leading-relaxed">
+              Select your preferred forecasting frequency: monthly, weekly, or daily, and get accurate predictions with confidence intervals.
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   </section>
 
   <!-- Contact Section -->
-  <section class="max-w-7xl mx-auto px-6 py-12 grid md:grid-cols-2 gap-10 items-center">
-    <div>
-      <h2 class="text-center text-4xl font-semibold mb-5">Contact Us</h2>
-      <p class="text-center text-lg mb-10">Reach out for support or inquiries about our time series forecasting web
-        application solutions.</p>
-    </div>
-    <div class="max-w-xl mx-auto px-6">
-      <h2 class="text-center text-3xl font-semibold mb-6">Contact Us</h2>
-      <form class="space-y-4">
-        <input type="text" placeholder="Enter your first name"
-          class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
-        <input type="email" placeholder="Enter your email address"
-          class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
-        <textarea placeholder="Describe your forecasting Needs"
-          class="w-full px-4 py-2 h-20 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
-        <button type="submit"
-          class="w-full px-20 py-3 bg-blue-600 text-white rounded-3xl hover:bg-blue-700">Submit</button>
-      </form>
+  <section class="py-20 bg-gray-50">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="grid md:grid-cols-2 gap-16 items-center">
+        <div class="text-center md:text-left">
+          <h2 class="text-4xl font-bold mb-4 text-gray-800">Get in Touch</h2>
+          <p class="text-xl text-gray-600 mb-8">
+            Have questions or need help with your forecasting needs? Reach out and we'll be happy to assist you.
+          </p>
+        </div>
+
+        <div class="bg-white p-8 rounded-2xl shadow-lg">
+          <h2 class="text-2xl font-semibold mb-6 text-center text-gray-800">Contact Us</h2>
+          <form class="space-y-5">
+            <div>
+              <label for="name" class="text-sm font-medium text-gray-700 block mb-1">Your Name</label>
+              <input type="text" id="name" placeholder="Enter your name"
+                class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            </div>
+            <div>
+              <label for="email" class="text-sm font-medium text-gray-700 block mb-1">Email Address</label>
+              <input type="email" id="email" placeholder="Enter your email address"
+                class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            </div>
+            <div>
+              <label for="message" class="text-sm font-medium text-gray-700 block mb-1">Message</label>
+              <textarea id="message" placeholder="Describe your forecasting needs"
+                class="w-full px-4 py-3 h-24 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
+            </div>
+            <button type="submit"
+              class="w-full px-6 py-3 bg-brand-blue text-white rounded-lg hover:bg-blue-700 transition flex items-center justify-center font-medium">
+              <span>Send Message</span>
+              <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+              </svg>
+            </button>
+          </form>
+        </div>
+      </div>
     </div>
   </section>
 
   <!-- Founder Section -->
-<section class="bg-white py-16 border-t border-gray-200">
-  <div class="max-w-5xl mx-auto flex flex-col md:flex-row items-center px-6 space-y-10 md:space-y-0 md:space-x-10">
-    <img src="{{ url_for('static', path='assets/about_me.jpg') }}" alt="Founder Photo" class="w-40 h-40 rounded-full shadow-lg object-cover border-4 border-blue-500" />
-    <div>
-      <h2 class="text-3xl font-bold text-gray-800 mb-2">Meet the Founder & Developer</h2>
-      <p class="text-lg text-gray-600 mb-4">Hi, I'm <span class="font-semibold text-blue-600">Rueben Patil</span>, the creator of Auto Forecast. I’m passionate about making forecasting simple, accurate, and accessible for everyone.</p>
-      <a href="https://www.linkedin.com/in/rueben-patil-3b14b91b3?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app" target="_blank" class="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium">
-        <svg class="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.762 2.239 5 5 5h14c2.761 0 5-2.238 5-5v-14c0-2.761-2.239-5-5-5zm-11 19h-3v-9h3v9zm-1.5-10.286c-.966 0-1.75-.792-1.75-1.764 0-.973.784-1.765 1.75-1.765s1.75.792 1.75 1.765c0 .972-.784 1.764-1.75 1.764zm13.5 10.286h-3v-4.586c0-2.418-3-2.231-3 0v4.586h-3v-9h3v1.192c1.396-2.586 6-2.777 6 2.476v5.332z"/>
-        </svg>
-        Connect on LinkedIn
-      </a>
+  <section class="bg-white py-20 border-t border-gray-200">
+    <div class="max-w-5xl mx-auto px-6">
+      <div class="flex flex-col md:flex-row items-center justify-center gap-12">
+        <div class="relative">
+          <div class="absolute inset-0 bg-blue-400 rounded-full transform translate-x-3 translate-y-3"></div>
+          <img src="{{ url_for('static', path='assets/about_me.jpg') }}" alt="Founder Photo" 
+            class="w-56 h-56 md:w-64 md:h-64 rounded-full shadow-xl object-cover border-4 border-white relative z-10" />
+        </div>
+        <div class="text-center md:text-left max-w-lg">
+          <span class="bg-blue-100 text-brand-blue px-3 py-1 rounded-full text-sm font-medium inline-block mb-4">MEET THE FOUNDER</span>
+          <h2 class="text-3xl font-bold text-gray-800 mb-4">Rueben Patil</h2>
+          <p class="text-gray-600 mb-6 leading-relaxed">
+            Hi, I'm the creator of Auto Forecast. I'm passionate about making forecasting simple, accurate, and accessible for everyone. With Auto Forecast, my goal is to democratize time series forecasting and empower businesses of all sizes to make data-driven decisions.
+          </p>
+          <a href="https://www.linkedin.com/in/rueben-patil-3b14b91b3" target="_blank" 
+            class="inline-flex items-center text-brand-blue hover:text-blue-700 font-medium group transition-colors">
+            <svg class="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.762 2.239 5 5 5h14c2.761 0 5-2.238 5-5v-14c0-2.761-2.239-5-5-5zm-11 19h-3v-9h3v9zm-1.5-10.286c-.966 0-1.75-.792-1.75-1.764 0-.973.784-1.765 1.75-1.765s1.75.792 1.75 1.765c0 .972-.784 1.764-1.75 1.764zm13.5 10.286h-3v-4.586c0-2.418-3-2.231-3 0v4.586h-3v-9h3v1.192c1.396-2.586 6-2.777 6 2.476v5.332z"/>
+            </svg>
+            <span class="border-b border-transparent group-hover:border-blue-700">Connect on LinkedIn</span>
+            <svg class="w-4 h-4 ml-1 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+            </svg>
+          </a>
+        </div>
+      </div>
     </div>
-  </div>
-</section>
+  </section>
 
-  <!-- Credits Section -->
-<footer class="bg-gray-900 text-white py-6 mt-10">
-  <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between px-6">
-    <div class="flex items-center space-x-3">
-      <svg class="w-6 h-6 text-blue-400" fill="currentColor" viewBox="0 0 24 24">
-        <path d="M12 2C6.477 2 2 6.484 2 12.014c0 4.419 2.865 8.166 6.839 9.489.5.092.682-.219.682-.484 0-.238-.008-.868-.013-1.703-2.782.605-3.37-1.34-3.37-1.34-.454-1.153-1.11-1.46-1.11-1.46-.909-.62.069-.608.069-.608 1.003.071 1.531 1.03 1.531 1.03.893 1.532 2.341 1.09 2.91.833.091-.647.35-1.091.636-1.342-2.221-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.27.098-2.647 0 0 .84-.27 2.75 1.026A9.574 9.574 0 0112 6.844c.85.004 1.704.115 2.5.337 1.909-1.296 2.748-1.026 2.748-1.026.546 1.377.202 2.394.099 2.647.64.7 1.028 1.595 1.028 2.688 0 3.848-2.337 4.696-4.566 4.944.359.31.679.924.679 1.861 0 1.343-.012 2.427-.012 2.756 0 .268.18.58.688.481A10.018 10.018 0 0022 12.014C22 6.484 17.523 2 12 2z"/>
-      </svg>
-      <span class="text-lg font-semibold">Made by <span class="text-blue-400">Rueben Patil</span></span>
-    </div>
-    <div class="mt-4 md:mt-0">
-      <a href="https://www.linkedin.com/in/rueben-patil-3b14b91b3?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app" target="_blank" class="flex items-center text-blue-400 hover:text-white transition">
-        <svg class="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.762 2.239 5 5 5h14c2.761 0 5-2.238 5-5v-14c0-2.761-2.239-5-5-5zm-11 19h-3v-9h3v9zm-1.5-10.286c-.966 0-1.75-.792-1.75-1.764 0-.973.784-1.765 1.75-1.765s1.75.792 1.75 1.765c0 .972-.784 1.764-1.75 1.764zm13.5 10.286h-3v-4.586c0-2.418-3-2.231-3 0v4.586h-3v-9h3v1.192c1.396-2.586 6-2.777 6 2.476v5.332z"/>
-        </svg>
-        Connect on LinkedIn
-      </a>
-    </div>
-  </div>
-</footer>
+  <!-- Footer -->
+ <footer class="bg-gray-900 text-white py-6 mt-10">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between px-6">
+            <div class="flex items-center space-x-3">
+                <svg class="w-6 h-6 text-blue-400" fill="currentColor" viewBox="0 0 24 24">
+                    <path
+                        d="M12 2C6.477 2 2 6.484 2 12.014c0 4.419 2.865 8.166 6.839 9.489.5.092.682-.219.682-.484 0-.238-.008-.868-.013-1.703-2.782.605-3.37-1.34-3.37-1.34-.454-1.153-1.11-1.46-1.11-1.46-.909-.62.069-.608.069-.608 1.003.071 1.531 1.03 1.531 1.03.893 1.532 2.341 1.09 2.91.833.091-.647.35-1.091.636-1.342-2.221-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.27.098-2.647 0 0 .84-.27 2.75 1.026A9.574 9.574 0 0112 6.844c.85.004 1.704.115 2.5.337 1.909-1.296 2.748-1.026 2.748-1.026.546 1.377.202 2.394.099 2.647.64.7 1.028 1.595 1.028 2.688 0 3.848-2.337 4.696-4.566 4.944.359.31.679.924.679 1.861 0 1.343-.012 2.427-.012 2.756 0 .268.18.58.688.481A10.018 10.018 0 0022 12.014C22 6.484 17.523 2 12 2z" />
+                </svg>
+                <span class="text-lg font-semibold">Made by <span class="text-blue-400">Rueben Patil</span></span>
+            </div>
+            <div class="mt-4 md:mt-0">
+                <a href="https://www.linkedin.com/in/rueben-patil-3b14b91b3?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app"
+                    target="_blank" class="flex items-center text-blue-400 hover:text-white transition">
+                    <svg class="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                        <path
+                            d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.762 2.239 5 5 5h14c2.761 0 5-2.238 5-5v-14c0-2.761-2.239-5-5-5zm-11 19h-3v-9h3v9zm-1.5-10.286c-.966 0-1.75-.792-1.75-1.764 0-.973.784-1.765 1.75-1.765s1.75.792 1.75 1.765c0 .972-.784 1.764-1.75 1.764zm13.5 10.286h-3v-4.586c0-2.418-3-2.231-3 0v4.586h-3v-9h3v1.192c1.396-2.586 6-2.777 6 2.476v5.332z" />
+                    </svg>
+                    Connect on LinkedIn
+                </a>
+            </div>
+        </div>
+    </footer>
 
 </body>
 

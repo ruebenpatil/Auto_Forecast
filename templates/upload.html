@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Upload Forecast</title>
+    <title>Upload | Auto Forecast</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://d3js.org/d3.v7.min.js"></script>
 </head>
@@ -19,142 +19,219 @@
                 <a href="{{ url_for('index') }}"
                     class="text-gray-700 hover:text-blue-600 transition font-medium">Home</a>
                 <a href="{{ url_for('upload') }}" class="text-blue-600 font-semibold underline">Upload</a>
-                <a href="/forecast.html" class="text-gray-700 hover:text-blue-600 transition font-medium">Forecast</a>
-                <a href="/results.html" class="text-gray-700 hover:text-blue-600 transition font-medium">Results</a>
+                <a href="{{ url_for('instructions') }}"
+                    class="text-gray-700 hover:text-blue-600 transition font-medium">Instructions</a>
             </nav>
         </div>
     </header>
 
     <!-- Upload Section -->
-     <main class="flex-grow">
-    <section class="max-full mx-auto px-6 py-12">
-        <h1 class="text-4xl font-bold mb-10 text-center text-blue-800">Upload Your CSV</h1>
+    <main class="flex-grow">
+        <section class="max-full mx-auto px-6 py-12">
+            <h1 class="text-4xl font-bold mb-10 text-center text-blue-800">Upload Your CSV</h1>
 
-        <!-- File Upload -->
-        <div class="flex flex-col items-center mb-8">
-            <input id="csvInput" type="file" accept=".csv"
-            onchange="validateFile(this)"
-                class="block w-full max-w-xs text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:font-semibold file:bg-blue-100 file:text-blue-700 hover:file:bg-blue-200" />
+            <!-- File Upload -->
+            <div class="flex flex-col items-center mb-8">
+                <div class="w-full max-w-xl p-6 bg-white rounded-xl shadow-sm border border-gray-100 mb-4">
+                    <!-- Upload Header -->
+                    <div class="flex items-center mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600 mr-2" viewBox="0 0 20 20"
+                            fill="currentColor">
+                            <path fill-rule="evenodd"
+                                d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        <h3 class="font-semibold text-gray-800">Upload Your CSV File</h3>
+                    </div>
 
-            <!-- File size note -->
-            <p class="mt-3 text-sm text-gray-600 text-center max-w-md">
-                ⚠️ For best performance, please upload a CSV file under <span class="font-semibold text-blue-700">10
-                    MB</span>.<br> Larger files may slow down processing.
-            </p>
-        </div>
+                    <!-- File Input -->
+                    <input id="csvInput" type="file" accept=".csv" onchange="validateFile(this)"
+                        class="block w-full text-sm file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 focus:outline-none cursor-pointer mb-4" />
 
+                    <!-- File size note -->
+                    <div class="flex items-center justify-center bg-blue-50 p-3 rounded-lg text-sm text-gray-700">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600 mr-2 flex-shrink-0"
+                            viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd"
+                                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2h-1V9a1 1 0 00-1-1z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        <p>
+                            For best performance, please upload a CSV file under <span
+                                class="font-semibold text-blue-700">10 MB</span>. Larger files may slow down processing.
+                        </p>
+                    </div>
+                </div>
 
-        <!-- Dropdown and Run Button -->
-        <div class="flex justify-center mb-8">
-            <div id="optionsSection" class="hidden w-full max-w-xs space-y-4">
-                <select id="frequency"
-                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                    <option value="">Select Frequency</option>
-                    <option value="daily">Daily</option>
-                    <option value="weekly">Weekly</option>
-                    <option value="monthly">Monthly</option>
-                </select>
-                <button id="runForecast"
-                    class="w-full py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition">
-                    Run Forecast
-                </button>
+                <!-- Link to Instructions -->
+                <a href="{{ url_for('instructions') }}"
+                    class="group flex items-center text-sm text-blue-600 hover:text-blue-800 transition-colors duration-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1 group-hover:text-blue-800"
+                        viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd"
+                            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2h-1V9a1 1 0 00-1-1z"
+                            clip-rule="evenodd" />
+                    </svg>
+                    <span class="font-medium">Need help? View our detailed upload instructions</span>
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                        class="h-4 w-4 ml-1 transform group-hover:translate-x-1 transition-transform duration-200"
+                        viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd"
+                            d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z"
+                            clip-rule="evenodd" />
+                    </svg>
+                </a>
             </div>
-        </div>
 
 
-        <!-- Spinner -->
-        <div id="spinner" class="hidden flex justify-center my-6">
-            <svg class="animate-spin h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none"
-                viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
-            </svg>
-        </div>
-
-        <!-- Scores Section -->
-        <div class="flex justify-center mt-8" id="resultsWrapper">
-            <div id="results" class="w-full max-w-4xl hidden">
-                <h2 class="text-3xl font-semibold mb-4 text-center">Forecast Results</h2>
-                <div id="tableContainer" class="flex justify-center flex-wrap gap-6">
-                    <!-- Tables will be dynamically inserted here -->
+            <!-- Dropdown and Run Button -->
+            <div class="flex justify-center mb-8">
+                <div id="optionsSection" class="hidden w-full max-w-xs space-y-4 transition-fade fade-out">
+                    <select id="frequency"
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 shadow-sm appearance-none bg-white">
+                        <option value="">Select Frequency</option>
+                        <option value="daily">Daily</option>
+                        <option value="weekly">Weekly</option>
+                        <option value="monthly">Monthly</option>
+                    </select>
+                    <button id="runForecast"
+                        class="bg-green-600 w-full py-3 flex items-center justify-center text-white rounded-lg">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20"
+                            fill="currentColor">
+                            <path fill-rule="evenodd"
+                                d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        Run Forecast
+                    </button>
                 </div>
             </div>
-        </div>
-
-        <!-- Best Model Display -->
-        <div id="bestModelWrapper" class="w-full text-center mt-6 hidden">
-            <p id="bestModelText" class="text-2xl font-medium text-green-600">
-                <!-- Best model info will go here -->
-            </p>
-        </div>
 
 
-        <!-- Model Selection -->
-        <div class="flex justify-center mt-8" id="modelSectionWrapper">
-            <div id="modelSection" class="w-full max-w-md hidden">
-                <h3 class="text-xl font-semibold mb-2 text-center">Select Model</h3>
-                <select id="modelSelector"
-                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option value="">Select Model</option>
-                    <!-- Options will be populated dynamically -->
-                </select>
+            <!-- Spinner -->
+            <div id="spinner" class="hidden flex justify-center my-6">
+                <svg class="animate-spin h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none"
+                    viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                </svg>
             </div>
-        </div>
 
-        <!-- Spinner -->
-        <div id="spinner_model" class="hidden flex justify-center my-6">
-            <svg class="animate-spin h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none"
-                viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
-            </svg>
-        </div>
-
-        <!-- Tables Section -->
-        <div class="flex justify-center mt-8" id="resultsWrapper">
-            <div id="modelResults" class="w-full max-w-7xl hidden">
-                <!-- <h2 class="text-2xl font-semibold mb-4 text-center">Forecast Results</h2> -->
-                <div id="modelTableContainer" class="flex justify-center flex-wrap gap-6">
-                    <!-- JS will insert tables here -->
+            <!-- Scores Section -->
+            <div class="flex justify-center mt-8" id="resultsWrapper">
+                <div id="results" class="w-full max-w-4xl hidden">
+                    <div class="flex items-center justify-center mb-8">
+                        <div class="h-0.5 bg-gray-200 w-full"></div>
+                        <h2 class="text-3xl font-semibold px-6 text-center whitespace-nowrap text-blue-800">Forecast
+                            Results</h2>
+                        <div class="h-0.5 bg-gray-200 w-full"></div>
+                    </div>
+                    <div id="tableContainer" class="flex justify-center flex-wrap gap-6">
+                        <!-- Tables will be dynamically inserted here -->
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Charts Section (Bottom Row) -->
-        <div id="chartContainer" class="mt-8 hidden grid grid-cols-1 md:grid-cols-2 gap-6 max-w-6xl mx-auto">
-            <!-- Chart 1 -->
-            <div id="chart3" class="bg-white p-4 shadow rounded">
-                <h4 class="text-center font-semibold mb-2">Actual vs Forecast with Confidence Interval</h4>
-                <svg id="currentChart" width="100%" height="300"></svg>
+            <!-- Best Model Display -->
+            <div id="bestModelWrapper" class="w-full text-center mt-6 hidden transition-fade fade-out">
+                <div class="py-3 px-6 rounded-lg inline-block bg-green-50 border border-green-200">
+                    <p id="bestModelText" class="text-2xl font-medium text-green-600">
+                        <!-- Best model info will go here -->
+                    </p>
+                </div>
             </div>
 
-            <!-- Chart 2 -->
-            <div id="chart4" class="bg-white p-4 shadow rounded">
-                <h4 class="text-center font-semibold mb-2">Future Forecast with Confidence Interval</h4>
-                <svg id="futureChart" width="100%" height="300"></svg>
-            </div>
-        </div>
 
-    </section>
+            <!-- Model Selection -->
+            <div class="flex justify-center mt-10" id="modelSectionWrapper">
+                <div id="modelSection" class="w-full max-w-md hidden transition-fade fade-out">
+                    <div class="bg-white p-6 rounded-xl shadow-xs border border-gray-100">
+                        <h3 class="text-xl font-semibold mb-4 text-center text-blue-800">Select Model for Detailed
+                            Analysis</h3>
+                        <div class="relative">
+                            <select id="modelSelector"
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none">
+                                <option value="">Select Model</option>
+                                <!-- Options will be populated dynamically -->
+                            </select>
+                            <div
+                                class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                                <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg"
+                                    viewBox="0 0 20 20">
+                                    <path
+                                        d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Spinner -->
+            <div id="spinner_model" class="hidden flex justify-center my-6">
+                <svg class="animate-spin h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none"
+                    viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                </svg>
+            </div>
+
+            <!-- Tables Section -->
+            <div class="flex justify-center mt-8" id="resultsWrapper">
+                <div id="modelResults" class="w-full max-w-7xl hidden transition-fade fade-out">
+                    <div class="flex items-center justify-center mb-8">
+                        <div class="h-0.5 bg-gray-200 w-full"></div>
+                        <h2 class="text-3xl font-semibold px-6 text-center whitespace-nowrap text-blue-800">Model
+                            Analysis</h2>
+                        <div class="h-0.5 bg-gray-200 w-full"></div>
+                    </div>
+                    <div id="modelTableContainer" class="flex justify-center flex-wrap gap-6">
+                        <!-- JS will insert tables here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Section (Bottom Row) -->
+            <div id="chartContainer"
+                class="mt-12 hidden transition-fade fade-out grid grid-cols-1 md:grid-cols-2 gap-8 max-w-7xl mx-auto">
+                <!-- Chart 1 -->
+                <div id="chart3" class="w-full bg-white p-6 shadow-md rounded-xl chart-container">
+                    <h4 class="text-center font-semibold mb-4 text-lg text-blue-800">Actual vs Forecast with Confidence
+                        Interval</h4>
+                    <svg id="currentChart" width="100%" height="300"></svg>
+                </div>
+
+                <!-- Chart 2 -->
+                <div id="chart4" class="w-full bg-white p-6 shadow-md rounded-xl chart-container">
+                    <h4 class="text-center font-semibold mb-4 text-lg text-blue-800">Future Forecast with Confidence
+                        Interval</h4>
+                    <svg id="futureChart" width="100%" height="300"></svg>
+                </div>
+            </div>
+
+        </section>
     </main>
 
     <footer class="bg-gray-900 text-white py-6 mt-10">
-      <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between px-6">
-        <div class="flex items-center space-x-3">
-          <svg class="w-6 h-6 text-blue-400" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M12 2C6.477 2 2 6.484 2 12.014c0 4.419 2.865 8.166 6.839 9.489.5.092.682-.219.682-.484 0-.238-.008-.868-.013-1.703-2.782.605-3.37-1.34-3.37-1.34-.454-1.153-1.11-1.46-1.11-1.46-.909-.62.069-.608.069-.608 1.003.071 1.531 1.03 1.531 1.03.893 1.532 2.341 1.09 2.91.833.091-.647.35-1.091.636-1.342-2.221-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.27.098-2.647 0 0 .84-.27 2.75 1.026A9.574 9.574 0 0112 6.844c.85.004 1.704.115 2.5.337 1.909-1.296 2.748-1.026 2.748-1.026.546 1.377.202 2.394.099 2.647.64.7 1.028 1.595 1.028 2.688 0 3.848-2.337 4.696-4.566 4.944.359.31.679.924.679 1.861 0 1.343-.012 2.427-.012 2.756 0 .268.18.58.688.481A10.018 10.018 0 0022 12.014C22 6.484 17.523 2 12 2z"/>
-          </svg>
-          <span class="text-lg font-semibold">Made by <span class="text-blue-400">Rueben Patil</span></span>
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between px-6">
+            <div class="flex items-center space-x-3">
+                <svg class="w-6 h-6 text-blue-400" fill="currentColor" viewBox="0 0 24 24">
+                    <path
+                        d="M12 2C6.477 2 2 6.484 2 12.014c0 4.419 2.865 8.166 6.839 9.489.5.092.682-.219.682-.484 0-.238-.008-.868-.013-1.703-2.782.605-3.37-1.34-3.37-1.34-.454-1.153-1.11-1.46-1.11-1.46-.909-.62.069-.608.069-.608 1.003.071 1.531 1.03 1.531 1.03.893 1.532 2.341 1.09 2.91.833.091-.647.35-1.091.636-1.342-2.221-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.27.098-2.647 0 0 .84-.27 2.75 1.026A9.574 9.574 0 0112 6.844c.85.004 1.704.115 2.5.337 1.909-1.296 2.748-1.026 2.748-1.026.546 1.377.202 2.394.099 2.647.64.7 1.028 1.595 1.028 2.688 0 3.848-2.337 4.696-4.566 4.944.359.31.679.924.679 1.861 0 1.343-.012 2.427-.012 2.756 0 .268.18.58.688.481A10.018 10.018 0 0022 12.014C22 6.484 17.523 2 12 2z" />
+                </svg>
+                <span class="text-lg font-semibold">Made by <span class="text-blue-400">Rueben Patil</span></span>
+            </div>
+            <div class="mt-4 md:mt-0">
+                <a href="https://www.linkedin.com/in/rueben-patil-3b14b91b3?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app"
+                    target="_blank" class="flex items-center text-blue-400 hover:text-white transition">
+                    <svg class="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                        <path
+                            d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.762 2.239 5 5 5h14c2.761 0 5-2.238 5-5v-14c0-2.761-2.239-5-5-5zm-11 19h-3v-9h3v9zm-1.5-10.286c-.966 0-1.75-.792-1.75-1.764 0-.973.784-1.765 1.75-1.765s1.75.792 1.75 1.765c0 .972-.784 1.764-1.75 1.764zm13.5 10.286h-3v-4.586c0-2.418-3-2.231-3 0v4.586h-3v-9h3v1.192c1.396-2.586 6-2.777 6 2.476v5.332z" />
+                    </svg>
+                    Connect on LinkedIn
+                </a>
+            </div>
         </div>
-        <div class="mt-4 md:mt-0">
-          <a href="https://www.linkedin.com/in/rueben-patil-3b14b91b3?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app" target="_blank" class="flex items-center text-blue-400 hover:text-white transition">
-            <svg class="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.762 2.239 5 5 5h14c2.761 0 5-2.238 5-5v-14c0-2.761-2.239-5-5-5zm-11 19h-3v-9h3v9zm-1.5-10.286c-.966 0-1.75-.792-1.75-1.764 0-.973.784-1.765 1.75-1.765s1.75.792 1.75 1.765c0 .972-.784 1.764-1.75 1.764zm13.5 10.286h-3v-4.586c0-2.418-3-2.231-3 0v4.586h-3v-9h3v1.192c1.396-2.586 6-2.777 6 2.476v5.332z"/>
-            </svg>
-            Connect on LinkedIn
-          </a>
-        </div>
-      </div>
     </footer>
 
     <script>

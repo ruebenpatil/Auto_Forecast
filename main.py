@@ -46,6 +46,10 @@ async def root(request: Request):
 async def upload(request: Request):
     return templates.TemplateResponse("upload.html", {"request": request})
 
+@app.get("/instructions", name="instructions")
+async def instructions(request: Request):
+    return templates.TemplateResponse("instructions.html", {"request": request})
+
 
 @app.post("/api/forecast")
 async def forecast(

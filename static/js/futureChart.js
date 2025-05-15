@@ -29,10 +29,10 @@ function drawFutureForecastChart(containerSelector, currentData, futureData, wid
 
     const g = svg.append("g")
         .attr("transform", `translate(${margin.left},${margin.top})`);
-
+    
     const innerWidth = width - margin.left - margin.right;
     const innerHeight = height - margin.top - margin.bottom;
-
+    
     const x = d3.scaleTime()
         .domain(d3.extent(allDates))
         .range([0, innerWidth]);
@@ -62,7 +62,7 @@ function drawFutureForecastChart(containerSelector, currentData, futureData, wid
         .y0(d => y(d.lower))
         .y1(d => y(d.upper));
 
-    
+
     // Draw confidence area
     g.append("path")
         .datum(forecast)
@@ -93,7 +93,7 @@ function drawFutureForecastChart(containerSelector, currentData, futureData, wid
         .attr("stroke-dasharray", "5 3")
         .attr("d", lineForecast);
 
-    
+
 
     // Add legend
     const legend = svg.append("g")

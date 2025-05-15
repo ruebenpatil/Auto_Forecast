@@ -179,7 +179,7 @@ async def forecast_model(
             else:
                 chosen_forecast = model_output
         else:
-            logger.warning("⚠️ Invalid model selection. Using best model.")
+            logger.warning("Invalid model selection. Using best model.")
             chosen_forecast = models[best_model]
 
         formatted_test_index = y_test.index.strftime("%Y-%m-%d")

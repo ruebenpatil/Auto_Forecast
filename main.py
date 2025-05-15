@@ -118,7 +118,8 @@ async def forecast_model(request: Request, model_name: str, session_key: str = Q
     with open(SESSION_DIR.joinpath(f"{session_key}.json"), "r") as f:
         session_data = json.load(f)
     logger.debug(f"--------------- {model_name} --------------------")
-    logger.debug(f"Session data: {session_data}")
+    logger.debug(f"Session data: {session_key}")
+    logger.debug(f"Session Key: {session_key}")
     y_test = session_data.get("y_test")
     y_test = pd.Series(y_test)
     y_test.index = pd.to_datetime(y_test.index)

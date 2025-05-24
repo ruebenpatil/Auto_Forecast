@@ -61,7 +61,7 @@
   <!-- Hero Video Section -->
   <section class="relative h-[700px] w-full overflow-hidden mb-24">
     <video class="w-full h-full object-cover" muted autoplay loop>
-      <source src={{ url_for('static', path="assets/intro.mp4" ) }} type="video/mp4">
+      <source src="{{ url_for('static', path='assets/intro.mp4' ) }}" type="video/mp4">
     </video>
     <div class="absolute inset-0 flex flex-col justify-center items-center text-white hero-gradient text-center">
       <div class="max-w-5xl px-4">
@@ -136,7 +136,7 @@
       </a>
     </div>
     <div class="order-1 md:order-2">
-      <img src={{ url_for('static', path="assets/stock.png" ) }} alt="Time Series Graph" 
+      <img src="{{ url_for('static', path='assets/stock.png' ) }}" alt="Time Series Graph" 
         class="rounded-xl shadow-xl hover:shadow-2xl transition duration-300 transform hover:scale-105">
     </div>
   </section>
@@ -155,7 +155,7 @@
         <!-- Feature Card 1 -->
         <div class="bg-white rounded-2xl shadow-lg overflow-hidden feature-card">
           <div class="h-64 overflow-hidden">
-            <img src={{ url_for('static', path="assets/upload.jpeg" ) }} alt="Data Upload" 
+            <img src="{{ url_for('static', path='assets/upload.jpeg' ) }}" alt="Data Upload" 
               class="w-full h-full object-cover transform hover:scale-110 transition duration-500">
           </div>
           <div class="p-6">
@@ -175,7 +175,7 @@
         <!-- Feature Card 2 -->
         <div class="bg-white rounded-2xl shadow-lg overflow-hidden feature-card">
           <div class="h-64 overflow-hidden">
-            <img src={{ url_for('static', path="assets/compare.jpg" ) }} alt="Model Comparison Tool" 
+            <img src="{{ url_for('static', path='assets/compare.jpg' ) }}" alt="Model Comparison Tool" 
               class="w-full h-full object-cover transform hover:scale-110 transition duration-500">
           </div>
           <div class="p-6">
@@ -195,7 +195,7 @@
         <!-- Feature Card 3 -->
         <div class="bg-white rounded-2xl shadow-lg overflow-hidden feature-card">
           <div class="h-64 overflow-hidden">
-            <img src={{ url_for('static', path="assets/ui.jpg" ) }} alt="User-Friendly Interface" 
+            <img src="{{ url_for('static', path='assets/ui.jpg' ) }}"" alt="User-Friendly Interface" 
               class="w-full h-full object-cover transform hover:scale-110 transition duration-500">
           </div>
           <div class="p-6">

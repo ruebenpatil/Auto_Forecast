@@ -1,3 +1,6 @@
 autoforecast.in {
   reverse_proxy auto-forecast:80
+  header {
+        Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
+    }
 }

@@ -4,10 +4,27 @@ services:
   auto-forecast:
     build: .
     container_name: auto-forecast-app
-    ports:
-      - "80:80"
+    expose:
+      - "80"
     volumes:
       - .:/app
     environment:
       - PYTHONUNBUFFERED=1
     restart: unless-stopped
+
+  caddy:
+    image: caddy:alpine
+    container_name: caddy-reverse-proxy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - auto-forecast
+
+volumes:
+  caddy_data:
+  caddy_config:

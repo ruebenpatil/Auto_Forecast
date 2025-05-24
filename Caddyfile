@@ -1,27 +1,6 @@
 autoforecast.in {
-  root * /app  # Match your Docker WORKDIR
-  encode gzip
-
-  # Serve static files
-  handle_path /static/* {
-    root * /app/static
-    file_server
-  }
-
-  # Serve index.html from templates (adjust if needed)
-  handle_path / {
-    file_server
-    try_files {path} /templates/index.html
-  }
-
-  # Optional: Proxy API requests to FastAPI backend
-  handle_path /api/* {
-    reverse_proxy localhost:80
-  }
-
-  # TLS (automatic via Caddy)
-  tls ruebenpatil59@gmail.com
-
-  # Redirect HTTP to HTTPS
-  redir http://autoforecast.in https://autoforecast.in
+  reverse_proxy auto-forecast:80
+  header {
+        Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
+    }
 }

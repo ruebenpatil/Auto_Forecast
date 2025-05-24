@@ -1,0 +1,3 @@
+autoforecast.in {
+  reverse_proxy auto-forecast:80
+}
